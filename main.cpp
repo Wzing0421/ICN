@@ -1,5 +1,6 @@
 #include "CS_LRU.h"
-#include "PIT.h"
+#include "PIT.h" 
+#include "FIB.h"
 
 #include <iostream>
 
@@ -103,8 +104,13 @@ void PITUnitTest(){
     }    
 }
 
+void FIBUnitTest(){
+    FIB fib;
+}
+
 int main(){
     //CSUnitTest();
-    PITUnitTest();
+    //PITUnitTest();
+    FIBUnitTest();
     return 0;
 }
