@@ -44,9 +44,27 @@ private:
      */
     unordered_set<string> localNames;
 
+    /**
+     * 获得上一级（或者可以理解成本地的目录），从而判断请求是不是本地的内容
+     * pku/eecs/ICN_EGS_1/ICN_GEO_1/video/testfile.txt/segment1 应该转换成pku/eecs/ICN_EGS_1/ICN_GEO_1 
+    */
+    string getUpperContent(string name);
+
+
 public:
     FIB();
     ~FIB();
+    /**
+     * 初始化FIB表和本地内容表
+     * 需要靠读取json文件的形式来初始化，每个节点的json文件是不一样的
+     * 分别初始化ContentNameForwardMap（每个内容应该转发的IP+port）和localNames（本地内容表）
+     */
     void initFIB();
 
+    /**
+     * 判断一个ContentName是不是本地的表里面有
+     * 请注意这里应该使用的是最长匹配原则，比如
+     * 本地是： pku/eecs/ICN_EGS_1/ICN_GEO_1; 收到pku/eecs/ICN_EGS_1/video/testfile.txt 是不能匹配的，因为video上一级是pku/eecs/ICN_EGS_1是不能匹配的
+    */
+    bool isMatchLocalNames(string name);
 };

@@ -55,3 +55,34 @@ void FIB::initFIB(){
     }
     cout << "=======================" << endl;
 }
+
+bool FIB::isMatchLocalNames(string name){
+    string upperName = getUpperContent(name);
+    //为空表示不合法 或者localNames没找到相应的字符串则说明不是本地字符串
+    if(upperName.empty() || localNames.find(upperName) == localNames.end()){
+        return false;
+    }
+    return true;
+}
+
+/**
+ * 从 pku/eecs/ICN_EGS_1/ICN_GEO_1/video/testfile.txt/segment1 应该转换成pku/eecs/ICN_EGS_1/ICN_GEO_1
+ * 我这里ContentName确定一定会有file video msg三种之间的任意一种。所以根据这个找到上级就行
+ */
+string FIB::getUpperContent(string name){
+    int position;
+    string ret = "";
+    if(string::npos != (position = name.find("file")) ){
+        //cout << position << endl;
+        ret = name.substr(0, position - 1);
+    }
+    else if(string::npos != (position = name.find("video")) ){
+        //cout << position << endl;
+        ret = name.substr(0, position - 1);
+    }
+    else if(string::npos != (position = name.find("msg")) ){
+        //cout << position << endl;
+        ret = name.substr(0, position - 1);
+    }
+    return ret;
+}

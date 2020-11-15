@@ -106,6 +106,22 @@ void PITUnitTest(){
 
 void FIBUnitTest(){
     FIB fib;
+    string str1 = "pku/eecs/ICN_EGS_1/ICN_GEO_1/file";
+    cout << "str1 " << str1 << " "<< fib.isMatchLocalNames(str1) << endl;
+    string str2 = "pku/eecs/ICN_GEO_1/file/testfial.txt/segment1";
+    cout << "str2 " << str2 << " "<< fib.isMatchLocalNames(str2) << endl;
+    string str3 = "pku/eecs/ICN_EGS_1/ICN_GEO_1/msg";
+    cout << "str3 " << str3 << " "<<  fib.isMatchLocalNames(str3) << endl;
+    string str4 = "pku/eecs/ICN_EGS_1/ICN_GEO_1/fi";
+    cout << "str4 " << str4 << " "<< fib.isMatchLocalNames(str4) << endl;
+    string str5 = "pku/eecs/ICN_EGS_1/ICN_GEO_1";
+    cout << "str5 " << str5 << " "<< fib.isMatchLocalNames(str5) << endl;
+    string str6 = "pku/eecs/ICN_EGS_1";
+    cout << "str6 " << str6 << " "<< fib.isMatchLocalNames(str6) << endl;
+    string str7 = "pku/eecs/ICN_EGS_2";
+    cout << "str7 " << str7 << " "<< fib.isMatchLocalNames(str7) << endl;
+    string str8 = "pku/eecs";
+    cout << "str8 " << str8 << " "<< fib.isMatchLocalNames(str8) << endl;
 }
 
 int main(){
