@@ -83,25 +83,25 @@ void PITUnitTest(){
     string name5 = "pku/eecs/video/testfile1.txt/segment1"; string IP5 = "162.105.85.184"; unsigned short port5 = 20200;
     string name6 = "pku/eecs/video/testfile1.txt/segment2"; string IP6 = "162.105.85.63"; unsigned short port6 = 20200;
     string name7 = "pku/eecs/video/testfile1.txt/segment2"; string IP7 = "162.105.85.184"; unsigned short port7 = 20200;
-    PIT pit;
-    pit.insertIpAndPortByContentName(name1, IP1, port1);
-    pit.insertIpAndPortByContentName(name2, IP2, port2);
-    pit.insertIpAndPortByContentName(name3, IP3, port3);
-    pit.insertIpAndPortByContentName(name4, IP4, port4);
-    pit.insertIpAndPortByContentName(name5, IP5, port5);
-    pit.insertIpAndPortByContentName(name6, IP6, port6);
-    pit.insertIpAndPortByContentName(name7, IP7, port7);
-    pit.printPIT();
+    PIT *pitinstance = PIT::GetInstance();
+    pitinstance->insertIpAndPortByContentName(name1, IP1, port1);
+    pitinstance->insertIpAndPortByContentName(name2, IP2, port2);
+    pitinstance->insertIpAndPortByContentName(name3, IP3, port3);
+    pitinstance->insertIpAndPortByContentName(name4, IP4, port4);
+    pitinstance->insertIpAndPortByContentName(name5, IP5, port5);
+    pitinstance->insertIpAndPortByContentName(name6, IP6, port6);
+    pitinstance->insertIpAndPortByContentName(name7, IP7, port7);
+    pitinstance->printPIT();
     
-    string str = "pku/eecs/video/testfile1.txt/segment10";
-    vector<pair<string, unsigned short>> res = pit.getPendingFace(str);
+    string str = "pku/eecs/file/testfile1.txt/segment10";
+    vector<pair<string, unsigned short>> res = pitinstance->getPendingFace(str);
     cout << res.size() << endl;
     if(res.size() > 0){
         for(int i = 0; i < res.size(); i++){
             cout << res[i].first << " " << res[i].second << " ";
         }
         cout << endl;
-    }    
+    }
 }
 
 void FIBUnitTest(){
@@ -137,7 +137,7 @@ void FIBUnitTest(){
 
 int main(){
     //CSUnitTest();
-    //PITUnitTest();
-    FIBUnitTest();
+    PITUnitTest();
+    //FIBUnitTest();
     return 0;
 }

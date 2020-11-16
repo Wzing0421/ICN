@@ -2,20 +2,28 @@
 //unordered_map<string, unordered_set<pair<string, unsigned short>>> ContentName2IPPort;
 
 PIT::PIT(){}
-PIT::~PIT(){}
+PIT::~PIT(){
+    if(PIT::pitInstance){
+        delete PIT::pitInstance;
+        PIT::pitInstance = NULL;    
+    }
+}
+
+PIT* PIT::pitInstance = NULL;
+std::mutex mtx;
+
+PIT* PIT::GetInstance(){
+    if(pitInstance == NULL){
+        std::lock_guard<mutex> lck(mtx);
+        if(pitInstance == NULL){
+            pitInstance = new PIT();
+        }
+    }
+    return pitInstance;
+}
 
 void PIT::insertIpAndPortByContentName(string name, string IP, unsigned short port){
 
-    /*unordered_map<string, unordered_set<pair<string, unsigned short>>>::iterator it = ContentName2IPPort.find(name);
-    //之前没用这个ContentName
-    if(it == ContentName2IPPort.end()){
-        unordered_set<pair<string, unsigned short> > IPPortSet;
-        IPPortSet.insert(make_pair(IP, port));
-        ContentName2IPPort[name] = IPPortSet;
-    }
-    else{
-        ContentName2IPPort[name].insert(make_pair(IP, port));
-    }*/
     auto it = ContentName2IPPort.find(name);
     if(it == ContentName2IPPort.end()){
         unordered_set<std::pair <string, unsigned short>, pair_hash> IPPortSet;

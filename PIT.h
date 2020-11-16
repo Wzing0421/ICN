@@ -5,6 +5,8 @@
 #include <vector>
 #include <string.h>
 #include <iostream>
+#include <mutex>
+
 #include "arpa/inet.h"
 
 using namespace std;
@@ -27,11 +29,18 @@ private:
      */
     unordered_map<string, unordered_set< pair<string, unsigned short>, pair_hash > > ContentName2IPPort;
 
+    //单例模式
+    PIT();
+    static PIT* pitInstance;
 
 public:
-    PIT();
+    
     ~PIT();
 
+    PIT(PIT &other) = delete;
+    void operator=(const PIT &) = delete;
+
+    static PIT* GetInstance();
 
     /**
      * 将ContentName对应的源端IP和port记录在map里面
