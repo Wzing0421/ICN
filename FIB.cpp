@@ -57,9 +57,9 @@ void FIB::initFIB(){
 }
 
 bool FIB::isMatchLocalNames(string name){
-    string upperName = getUpperContent(name);
+
     //为空表示不合法 或者localNames没找到相应的字符串则说明不是本地字符串
-    if(upperName.empty() || localNames.find(upperName) == localNames.end()){
+    if(name.empty() || localNames.find(name) == localNames.end()){
         return false;
     }
     return true;
@@ -73,16 +73,26 @@ string FIB::getUpperContent(string name){
     int position;
     string ret = "";
     if(string::npos != (position = name.find("file")) ){
-        //cout << position << endl;
         ret = name.substr(0, position - 1);
     }
     else if(string::npos != (position = name.find("video")) ){
-        //cout << position << endl;
         ret = name.substr(0, position - 1);
     }
     else if(string::npos != (position = name.find("msg")) ){
-        //cout << position << endl;
         ret = name.substr(0, position - 1);
+    }
+    return ret;
+}
+
+vector<pair<string, unsigned short>> FIB::getForwardingFaces(string name){
+    vector<pair<string, unsigned short>> ret;
+    auto pairiter = ContentNameForwardMap.find(name);
+    if(pairiter == ContentNameForwardMap.end()){
+        return ret;
+    }
+    unordered_set< pair<string, unsigned short>, pair_hash_fib > pairset = pairiter->second;
+    for(auto it = pairset.begin(); it != pairset.end(); it++){
+        ret.push_back(*it);
     }
     return ret;
 }

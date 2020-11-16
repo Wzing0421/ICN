@@ -106,7 +106,7 @@ void PITUnitTest(){
 
 void FIBUnitTest(){
     FIB fib;
-    string str1 = "pku/eecs/ICN_EGS_1/ICN_GEO_1/file";
+    /*string str1 = "pku/eecs/ICN_EGS_1/ICN_GEO_1/file";
     cout << "str1 " << str1 << " "<< fib.isMatchLocalNames(str1) << endl;
     string str2 = "pku/eecs/ICN_GEO_1/file/testfial.txt/segment1";
     cout << "str2 " << str2 << " "<< fib.isMatchLocalNames(str2) << endl;
@@ -121,7 +121,18 @@ void FIBUnitTest(){
     string str7 = "pku/eecs/ICN_EGS_2";
     cout << "str7 " << str7 << " "<< fib.isMatchLocalNames(str7) << endl;
     string str8 = "pku/eecs";
-    cout << "str8 " << str8 << " "<< fib.isMatchLocalNames(str8) << endl;
+    cout << "str8 " << str8 << " "<< fib.isMatchLocalNames(str8) << endl;*/
+    string str1 = "pku/eecs/ICN_EGS_2/file/tes1.txt/segment1";
+    //先获得上级根目录
+    string upperContentName = fib.getUpperContent(str1);
+    //然后判断是不是符合本地目录的要求
+    cout << fib.isMatchLocalNames(upperContentName) << endl;
+    //不符合则可以获得转发表
+    vector<pair<string, unsigned short>> ret = fib.getForwardingFaces(upperContentName);
+    for(int i = 0; i < ret.size(); i++){
+        cout << ret[i].first << " " << ret[i].second<< " ";
+    }
+    cout << endl;
 }
 
 int main(){

@@ -44,12 +44,6 @@ private:
      */
     unordered_set<string> localNames;
 
-    /**
-     * 获得上一级（或者可以理解成本地的目录），从而判断请求是不是本地的内容
-     * pku/eecs/ICN_EGS_1/ICN_GEO_1/video/testfile.txt/segment1 应该转换成pku/eecs/ICN_EGS_1/ICN_GEO_1 
-    */
-    string getUpperContent(string name);
-
 
 public:
     FIB();
@@ -63,8 +57,26 @@ public:
 
     /**
      * 判断一个ContentName是不是本地的表里面有
-     * 请注意这里应该使用的是最长匹配原则，比如
+     * 注意：1. 这里的输入应该是getUpperContent调整过的
+     *      2. 调整过的输入应该遵循 最长匹配原则，比如
      * 本地是： pku/eecs/ICN_EGS_1/ICN_GEO_1; 收到pku/eecs/ICN_EGS_1/video/testfile.txt 是不能匹配的，因为video上一级是pku/eecs/ICN_EGS_1是不能匹配的
     */
     bool isMatchLocalNames(string name);
+
+    /**
+     * 根据最长匹配原则，获得上一级（或者可以理解成本地的目录） 从而判断请求是不是本地的内容
+     * pku/eecs/ICN_EGS_1/ICN_GEO_1/video/testfile.txt/segment1 应该转换成pku/eecs/ICN_EGS_1/ICN_GEO_1
+     * 先使用本函数调整输入ContentName, 然后根据ContentName来使用isMatchLocalNames函数判断能不能匹配到本地的内容目录 
+    */
+    string getUpperContent(string name);
+
+    /**
+     * 如果不能匹配本地的目录， 则使用下面的函数获得应该转发至的所有接口，将Interest包转发至相应的接口
+     * 如果为空，说明不知道应该将其转发至哪里，当前原则是丢弃
+     * 
+     * 下一步计划，如果不知道转发至哪里，则转发至上级。
+     * 比如：高轨卫星转发至地面信关站ICN节点，地面ICN 节点转发至信源端，表示请求源端发送新的文件等内容
+     */
+    vector<pair<string, unsigned short>> getForwardingFaces(string name);
+
 };
