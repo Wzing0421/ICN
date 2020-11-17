@@ -8,6 +8,20 @@ FIB::~FIB(){
 
 }
 
+
+FIB* FIB::fibInstance = NULL;
+std::mutex fibmtx;
+
+FIB* FIB::GetInstance(){
+    if(fibInstance == NULL){
+        std::lock_guard<mutex> lck(fibmtx);
+        if(fibInstance == NULL){
+            fibInstance = new FIB();
+        }
+    }
+    return fibInstance;
+}
+
 void FIB::initFIB(){
     Json::Value root;
     Json::Reader reader;

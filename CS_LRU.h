@@ -3,6 +3,7 @@
 #include <list>
 #include <vector>
 #include <string.h>
+#include <mutex>
 #include <iostream>
 
 using namespace std;
@@ -31,10 +32,19 @@ private:
     //根据名字ContentName找到对应的长度，和Name2Content结合使用能够得到具体长度的字符数组
     unordered_map<string, int> Name2ContentLength;
 
+    CSLRU(int _size = 1000);
+    static CSLRU* cslruInstance;
+
 public:
 
-    CSLRU(int _size = 1000);
+    
     ~CSLRU();
+
+    CSLRU(CSLRU &other) = delete;
+    void operator=(const CSLRU &) = delete;
+
+    static CSLRU *getInstance(int _size = 1000);
+
     /**
      * 根据ContentName获得数据ContentData
      * 我在想这里面应该是返回一个list之类的，而不应该仅仅是一个char*

@@ -10,11 +10,11 @@ PIT::~PIT(){
 }
 
 PIT* PIT::pitInstance = NULL;
-std::mutex mtx;
+std::mutex pitmtx;
 
 PIT* PIT::GetInstance(){
     if(pitInstance == NULL){
-        std::lock_guard<mutex> lck(mtx);
+        std::lock_guard<mutex> lck(pitmtx);
         if(pitInstance == NULL){
             pitInstance = new PIT();
         }

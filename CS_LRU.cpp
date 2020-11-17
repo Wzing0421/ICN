@@ -11,6 +11,23 @@ CSLRU::~CSLRU(){
         it++;
         deleteContentDataAndLength(delstr);
     }
+    if(CSLRU::cslruInstance){
+        delete CSLRU::cslruInstance;
+        CSLRU::cslruInstance = NULL;
+    }
+}
+
+CSLRU* CSLRU::cslruInstance = NULL;
+std::mutex cslrumtx;
+
+CSLRU* CSLRU::getInstance(int _size){
+    if(cslruInstance == NULL){
+        std::lock_guard<mutex> lck(cslrumtx);
+        if(cslruInstance == NULL){
+            cslruInstance = new CSLRU(_size);
+        }
+    }
+    return cslruInstance;
 }
 
 char* CSLRU::getContentData(string name){

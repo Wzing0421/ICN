@@ -5,6 +5,7 @@
 #include <vector>
 #include <string.h>
 #include <iostream>
+#include <mutex>
 #include <fstream>
 
 #include "json/json.h"
@@ -44,10 +45,17 @@ private:
      */
     unordered_set<string> localNames;
 
+    FIB();
+    static FIB* fibInstance;
 
 public:
-    FIB();
+    
     ~FIB();
+    FIB(FIB &other) = delete;
+    void operator=(const FIB &) = delete;
+
+    static FIB* GetInstance();
+
     /**
      * 初始化FIB表和本地内容表
      * 需要靠读取json文件的形式来初始化，每个节点的json文件是不一样的
