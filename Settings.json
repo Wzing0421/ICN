@@ -1,0 +1,5 @@
+{
+    "comment" : "除了FIB表以外的全局设置在此读取。主要包括Data和Interest包的端口等信息",
+    "InterestPort" : 51001,
+    "DataPort": 51002
+}

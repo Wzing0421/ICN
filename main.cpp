@@ -1,16 +1,12 @@
-#include "CS_LRU.h"
-#include "PIT.h" 
-#include "FIB.h"
-
+#include "InterestProc.h"
+#include "package.h"
 #include <iostream>
 
 using namespace std;
-// 设计三个数据结构 CS PIT 和 FIB
-//json 读取
 
 void CSUnitTest(){
     /*
-    CSLRU *cslruinstance = CSLRU::getInstance(5);
+    CSLRU *cslruinstance = CSLRU::GetInstance(5);
     
     string str1 = "/aa/aa/textfile.txt/segment1";
     char *strcontent1 = "teststrlength=16";
@@ -108,6 +104,7 @@ void PITUnitTest(){
 }
 
 void FIBUnitTest(){
+    /*
     FIB *fibinstance = FIB::GetInstance();
     string str1 = "pku/eecs/ICN_EGS_1/ICN_GEO_1/file";
     cout << "str1 " << str1 << " "<< fibinstance->isMatchLocalNames(str1) << endl;
@@ -136,11 +133,25 @@ void FIBUnitTest(){
         cout << ret[i].first << " " << ret[i].second<< " ";
     }
     cout << endl;
+    */
+}
+
+void processingInterestPackage(){
+    InterestProc interestProc;
+    interestProc.procInterestPackage();
 }
 
 int main(){
     //CSUnitTest();
     //PITUnitTest();
-    FIBUnitTest();
+    //FIBUnitTest();
+    InterestPackage interestPackage("aaa/bbb/ccc");
+    
+    char* name = "aaa/bbb/ccc";
+    char* content = "thisisatest";
+    DataPackage dataPackage(name, content, strlen(content));
+    cout << sizeof(interestPackage)<<endl;
+    cout << sizeof(dataPackage) << endl;
+    //cout << dataPackage.data << endl;
     return 0;
 }

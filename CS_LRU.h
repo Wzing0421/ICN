@@ -1,3 +1,6 @@
+#ifndef __CSLRU_H__
+#define __CSLRU_H__
+
 #include <map>
 #include <unordered_map>
 #include <list>
@@ -43,7 +46,7 @@ public:
     CSLRU(CSLRU &other) = delete;
     void operator=(const CSLRU &) = delete;
 
-    static CSLRU *getInstance(int _size = 1000);
+    static CSLRU *GetInstance(int _size = 1000);
 
     /**
      * 根据ContentName获得数据ContentData
@@ -90,3 +93,4 @@ public:
     void printCSLRU();
 
 };
+#endif

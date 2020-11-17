@@ -1,3 +1,6 @@
+#ifndef __PIT_H__
+#define __PIT_H__
+
 #include <map>
 #include <unordered_map>
 #include <unordered_set>
@@ -75,3 +78,4 @@ public:
 
     void printPIT();
 };
+#endif

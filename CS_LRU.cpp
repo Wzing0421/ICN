@@ -20,7 +20,7 @@ CSLRU::~CSLRU(){
 CSLRU* CSLRU::cslruInstance = NULL;
 std::mutex cslrumtx;
 
-CSLRU* CSLRU::getInstance(int _size){
+CSLRU* CSLRU::GetInstance(int _size){
     if(cslruInstance == NULL){
         std::lock_guard<mutex> lck(cslrumtx);
         if(cslruInstance == NULL){

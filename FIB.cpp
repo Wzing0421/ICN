@@ -68,6 +68,7 @@ void FIB::initFIB(){
         cout << endl;
     }
     cout << "=======================" << endl;
+    ifs.close();
 }
 
 bool FIB::isMatchLocalNames(string name){

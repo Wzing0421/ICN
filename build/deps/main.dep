@@ -1,1 +1,2 @@
-build/objs/main.o build/deps/main.dep:main.cpp CS_LRU.h PIT.h FIB.h
+build/objs/main.o build/deps/main.dep:main.cpp InterestProc.h CS_LRU.h FIB.h PIT.h UDPSocket.h \
+ package.h

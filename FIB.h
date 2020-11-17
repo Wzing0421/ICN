@@ -1,3 +1,6 @@
+#ifndef __FIB_H__
+#define __FIB_H__
+
 #include <map>
 #include <unordered_map>
 #include <unordered_set>
@@ -88,3 +91,5 @@ public:
     vector<pair<string, unsigned short>> getForwardingFaces(string name);
 
 };
+
+#endif
