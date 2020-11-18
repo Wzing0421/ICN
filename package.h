@@ -19,18 +19,19 @@ struct InterestPackage{
     /**
      * 请求内容名字
      */
-    char contentName[50];
+    char contentName[60];
     
     InterestPackage(const char* _contentName){
         strcpy(contentName, _contentName);
     }
+    InterestPackage(){}
 };
 
 struct DataPackage{
     /**
      * 内容名字
      */
-    char contentName[50];
+    char contentName[60];
     
     /**
      * 具体数据,我只是初步定于1400字节，因为考虑到IP的MTU是1500字节

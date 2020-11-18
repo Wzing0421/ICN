@@ -69,6 +69,10 @@ vector<pair<string, unsigned short>> PIT::getPendingFace(string name){
     return ret;
 }
 
+bool PIT::isContentNamePending(string name){
+    return ( ContentName2IPPort.find(name) != ContentName2IPPort.end() ); 
+}
+
 string PIT::getUpperContentName(string name){
     for(int i = name.size() - 1; i >= 0; i--){
         if(name[i] == '/'){

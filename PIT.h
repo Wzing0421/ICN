@@ -62,6 +62,12 @@ public:
 
 
     /**
+     * 查看当前的内容ContentName是否已经有别人在等待了
+     * 当前函数只支持带segment后缀的名称
+     */
+    bool isContentNamePending(string name);
+
+    /**
      * 
      * 从当前的ContentName获取上级的ContentName
      * 比如说从 /pku/video/frstfile.txt/segment1 转换成 /pku/video/frstfile.txt

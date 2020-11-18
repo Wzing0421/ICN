@@ -1,5 +1,4 @@
 #include "InterestProc.h"
-#include "package.h"
 #include <iostream>
 
 using namespace std;
@@ -145,13 +144,7 @@ int main(){
     //CSUnitTest();
     //PITUnitTest();
     //FIBUnitTest();
-    InterestPackage interestPackage("aaa/bbb/ccc");
     
-    char* name = "aaa/bbb/ccc";
-    char* content = "thisisatest";
-    DataPackage dataPackage(name, content, strlen(content));
-    cout << sizeof(interestPackage)<<endl;
-    cout << sizeof(dataPackage) << endl;
-    //cout << dataPackage.data << endl;
+    processingInterestPackage();
     return 0;
 }

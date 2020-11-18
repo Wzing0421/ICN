@@ -38,7 +38,25 @@ private:
     //绑定接收InterestSocket的接收端口
     unsigned short InterestPort;
 
+    unsigned short DataPort;
+
     void InitInterestProc();
+
+    vector<string> getContentStoreNameList(string name);
+
+    char* getContentStoreData(string name);
+
+    int getContentStoreDataLength(string name);
+
+    bool isNameExistInPIT(string name);
+
+    void insertIpAndPortByContentName(string name, string IP, unsigned short port);
+
+    /*查询这个Interest请求的name是不是归属于本地*/
+    bool isMatchLocalNames(string name);
+
+    /*这个请求不属于本地的情况下，获得这个name应该转发的所有接口*/
+    vector<pair<string, unsigned short>> getForwardingFaces(string name);
 
 public:
 
@@ -50,4 +68,6 @@ public:
      * 详细流程见《信息中心网络》清华大学著 108页
      */
     void procInterestPackage();
+    
+
 };

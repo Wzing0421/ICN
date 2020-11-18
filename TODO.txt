@@ -1,0 +1,2 @@
+11月18日： 将Interest的逻辑状态机写完了，还没测试。
+先把CSLRU类里面的构造函数中加上一些mock的content保证Content Store中是有东西的。然后才能进行测试。
