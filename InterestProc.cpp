@@ -65,7 +65,7 @@ void InterestProc::procInterestPackage(){
                 char sendbuffer[1460];
                 memcpy(sendbuffer, &dataPackage, sizeof(sendbuffer));
                 udpInterestSocket.sendbuf(sendbuffer, sizeof(sendbuffer), srcip_, DataPort);
-                cout << "[info] send data to " << srcip_ << ":" << DataPort << endl;
+                cout << "[info] send data to " << srcip_ << ":" << DataPort << " ContentName: " << contentNameVec[i] << " Data: " << dataPackage.data <<endl;
             }
         }
         // 在content Store中没有找到
@@ -74,6 +74,7 @@ void InterestProc::procInterestPackage(){
             if(isNameExistInPIT(name)){
                 // 这里面port写sport_或者dataPort都行，因为数据转发固定是DataPort不会看存入这个PIT的port是什么
                 this->insertIpAndPortByContentName(name, srcip_, sport_);
+                cout << "[1]Insert Into PIT: " << name << " IP: " << srcip_ << " Port: " << sport_ << endl;
             }
             //PIT表中没有
             else{
@@ -89,11 +90,15 @@ void InterestProc::procInterestPackage(){
 
                         // 1. 先向PIT表中插入表项   
                         insertIpAndPortByContentName(name, srcip_, sport_);
+                        cout << "[2]Insert Into PIT: " << name << " IP: " << srcip_ << " Port: " << sport_ << endl;
                         // 2. 将Interest包转发给应该去的地方
                         for(int i = 0; i < pendingFace.size(); i++){
                             udpInterestSocket.sendbuf(recvInterestBuf, 100, pendingFace[i].first, pendingFace[i].second);
                             cout << "[Info] Sending Interest Package to " << pendingFace[i].first << ":" << pendingFace[i].second << endl;
                         }
+                    }
+                    else{
+                        cout << "No match in FIB" << endl;
                     }
                 }
             }

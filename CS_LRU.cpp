@@ -1,6 +1,38 @@
 #include "CS_LRU.h"
 CSLRU::CSLRU(int _size){
     this->size = _size;
+
+    /*我在这里加上一些测试语句方便测试，之后删除11月19日*/
+    string str1 = "pku/eecs/ICN_EGS_1/ICN_GEO_1/file/test1.txt/segment1";
+    char *strcontent1 = "teststrlength=16";
+    
+    string str2 = "pku/eecs/ICN_EGS_1/ICN_GEO_1/file/test1.txt/segment2";
+    char *strcontent2 = "testteststrlength=20";
+
+    string str3 = "pku/eecs/ICN_EGS_1/ICN_GEO_1/video/test1.txt/segment1";
+    char *strcontent3 = "testtestteststrlaeangth=26";
+    
+    string str4 = "pku/eecs/ICN_EGS_1/ICN_GEO_1/video/test2.txt/segment1";
+    char *strcontent4 = "testtesttestteststrlength=28";
+    
+    string str5 = "pku/eecs/ICN_EGS_1/ICN_GEO_1/video/test2.txt/segment2";
+    char *strcontent5 = "testtesttesttestteststrlength=32";
+
+    string str6 = "pku/eecs/ICN_EGS_1/ICN_GEO_1/video/test2.txt/segment3";
+    char *strcontent6 = "testtesttesttesttestteststrlength=36";
+
+    string str7 = "pku/eecs/ICN_EGS_1/ICN_GEO_1/msg/test1.txt/segment1";
+    char *strcontent7 = "testtesttesttesttesttestteststrlengthh=41";
+    
+    putContentNameAndDataAndLength(str1, strcontent1, strlen(strcontent1));
+    putContentNameAndDataAndLength(str2, strcontent2, strlen(strcontent2));
+    putContentNameAndDataAndLength(str3, strcontent3, strlen(strcontent3));
+    putContentNameAndDataAndLength(str4, strcontent4, strlen(strcontent4));
+    putContentNameAndDataAndLength(str5, strcontent5, strlen(strcontent5));
+    putContentNameAndDataAndLength(str6, strcontent6, strlen(strcontent6));
+    putContentNameAndDataAndLength(str5, strcontent5, strlen(strcontent5));
+    putContentNameAndDataAndLength(str7, strcontent7, strlen(strcontent7));
+    
 }
 CSLRU::~CSLRU(){
 
