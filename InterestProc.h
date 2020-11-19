@@ -1,3 +1,5 @@
+#ifndef __INTERESTPROC_H__
+#define __INTERESTPROC_H__
 #include <map>
 #include <unordered_map>
 #include <unordered_set>
@@ -13,6 +15,7 @@
 #include "FIB.h"
 #include "PIT.h"
 #include "UDPSocket.h"
+#include "package.h"
 
 using namespace std;
 
@@ -71,3 +74,4 @@ public:
     
 
 };
+#endif

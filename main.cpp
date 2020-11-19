@@ -1,4 +1,7 @@
 #include "InterestProc.h"
+#include "DataProc.h"
+
+#include <pthread.h>
 #include <iostream>
 
 using namespace std;
@@ -135,16 +138,31 @@ void FIBUnitTest(){
     */
 }
 
-void processingInterestPackage(){
+void *processingInterestPackage(void*){
     InterestProc interestProc;
     interestProc.procInterestPackage();
+}
+
+void *processingDataPackage(void*){
+    DataProc dataProc;
+    dataProc.procDataPackage();
 }
 
 int main(){
     //CSUnitTest();
     //PITUnitTest();
     //FIBUnitTest();
-    
-    processingInterestPackage();
+
+    pthread_t thid_Interest, thid_Data;
+    if(pthread_create(&thid_Interest, NULL, processingInterestPackage, NULL) != 0){
+        cout << "processingInterestPackage thread create error" << endl;
+        return -1;
+    }
+    if(pthread_create(&thid_Data, NULL, processingDataPackage, NULL) != 0){
+        cout << "processingDataPackage thread create error" << endl;
+        return -1;
+    }
+    pthread_join(thid_Interest, NULL);
+    pthread_join(thid_Data, NULL);
     return 0;
 }

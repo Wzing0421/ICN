@@ -48,6 +48,7 @@ struct DataPackage{
         strcpy(data, _data);
         datasize = _size;
     }
+    DataPackage(){}
 };
 
 #endif

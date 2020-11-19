@@ -1,5 +1,4 @@
 #include "InterestProc.h"
-#include "package.h"
 
 InterestProc::InterestProc(){
     InitInterestProc();
