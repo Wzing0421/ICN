@@ -23,7 +23,7 @@ PIT* PIT::GetInstance(){
 }
 
 void PIT::insertIpAndPortByContentName(string name, string IP, unsigned short port){
-
+    std::lock_guard<mutex> InsertPITLock(pitmtx);
     auto it = ContentName2IPPort.find(name);
     if(it == ContentName2IPPort.end()){
         unordered_set<std::pair <string, unsigned short>, pair_hash> IPPortSet;
@@ -37,6 +37,7 @@ void PIT::insertIpAndPortByContentName(string name, string IP, unsigned short po
 
 vector<pair<string, unsigned short>> PIT::getPendingFace(string name){
     
+    std::lock_guard<mutex> PITLock(pitmtx);
     vector<pair<string, unsigned short>> ret;
     //需要分两种情况：
     // 比如说 pku/eecs/video/testfile.txt/segment1 这类具体包数据应该直接能够找到
@@ -70,6 +71,8 @@ vector<pair<string, unsigned short>> PIT::getPendingFace(string name){
 }
 
 bool PIT::isContentNamePending(string name){
+
+    std::lock_guard<mutex> GetContentPITLock(pitmtx);
     return ( ContentName2IPPort.find(name) != ContentName2IPPort.end() ); 
 }
 
@@ -83,6 +86,8 @@ string PIT::getUpperContentName(string name){
 }
 
 void PIT::deleteContentName(string name){
+    
+    std::lock_guard<mutex> DeletePITLock(pitmtx);
     auto it = ContentName2IPPort.find(name);
     if(it != ContentName2IPPort.end()){
         ContentName2IPPort.erase(it);

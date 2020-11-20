@@ -92,5 +92,12 @@ public:
     
     void printCSLRU();
 
+    /*
+    * 将数据内容ContentData 和 长度length存入CS表
+    * 注意上面那个函数是有锁的，这个是无锁的，这个函数在真正开发完成之后会被删除．
+    * 这个函数也是向CS中添加东西，是为了方便测试用的．
+    */
+    void putContentNameAndDataAndLengthNoLock(string name, char* data, int length);
+
 };
 #endif

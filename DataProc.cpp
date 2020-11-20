@@ -51,8 +51,7 @@ void DataProc::procDataPackage(){
         string name = dataPackage.contentName;
         
         vector<string> contentNameVec = getContentStoreNameList(name);
-        cout << contentNameVec.size()<<endl;
-
+ 
         // Content Store中没有这个包才可以进行下面的操作
         if(contentNameVec.size() == 0){
 
@@ -63,6 +62,8 @@ void DataProc::procDataPackage(){
                     udpDataSocket.sendbuf(recvDataBuf, sizeof(recvDataBuf), pendingFaceVec[i].first, DataPort);
                     cout << "[Info] Forwarding data to: dstip " << pendingFaceVec[i].first << " ContentName: " << name << endl;
                 }
+                //删除PIT中的表项
+                deletePendingFaceInPIT(name);
             }
         }
         // 在content Store中找到，说明之前本地缓存有，已经还给了源端，直接丢弃即可
@@ -83,4 +84,8 @@ void DataProc::insertDataInContentStore(string name, char* data, int length){
 
 vector<pair<string, unsigned short>> DataProc::getPendingFaceInPIT(string name){
     return pitInstance->getPendingFace(name);
+}
+
+void DataProc::deletePendingFaceInPIT(string name){
+    return pitInstance->deleteContentName(name);
 }

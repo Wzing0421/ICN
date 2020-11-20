@@ -21,6 +21,10 @@ struct pair_hash{
     }
 };
 
+/** 
+ * PIT是等待信息表。
+ * 请注意，因为Interest对其有写操作，Data对其也有写操作，所以需要加锁。
+ */
 class PIT{
 
 private:

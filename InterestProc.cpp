@@ -51,7 +51,6 @@ void InterestProc::procInterestPackage(){
         memcpy(&interestPackage, recvInterestBuf, sizeof(interestPackage));
         string name = interestPackage.contentName;
         vector<string> contentNameVec = getContentStoreNameList(name);
-        cout << contentNameVec.size()<<endl;
 
         // 找到了所需要的包
         if(contentNameVec.size() != 0){

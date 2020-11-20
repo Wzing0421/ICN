@@ -47,6 +47,8 @@ private:
 
     vector<pair<string, unsigned short>> getPendingFaceInPIT(string name);
 
+    void deletePendingFaceInPIT(string name);
+
 public:
     DataProc();
     ~DataProc();
