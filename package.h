@@ -89,9 +89,23 @@ struct InquirePackage{
      * 请求内容名字
      */
     char contentName[50];
+
+    /**
+     * inquire = 1表示查询
+     * inquire = 0表示回复
+     */
+    int inquire;
+
+    /**
+     * answer = 1表示内容存在
+     * answer = 0表示内容不存在
+     */
+    int answer;
     
-    InquirePackage(const char* _contentName){
+    InquirePackage(const char* _contentName, int _inquire, int _answer){
         strcpy(contentName, _contentName);
+        inquire = _inquire;
+        answer = _answer;
     }
     InquirePackage(){}
 };

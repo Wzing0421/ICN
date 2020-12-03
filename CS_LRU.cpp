@@ -195,6 +195,35 @@ bool CSLRU::IsDataPackageInContentStore(DataPackage datapack){
     return iter != Name2ContentData[UpperName].end();
 }
 
+bool CSLRU::IsDataPackageInContentStore(string name){
+    if(name.find("segment") != string::npos){
+        //以包名为粒度
+        return IsDataPackageBySegmentName(name);
+    }
+    else{
+        //这个包以文件为粒度
+        return IsAllDataPackageByUpperName(name);
+    }
+}
+
+bool CSLRU::IsDataPackageBySegmentName(string name){
+    string upperName = getUpperName(name);
+    if(upperName.empty()) return false;
+    
+    std::lock_guard<mutex> judgeInlckBySegmentName(cslrumtx);
+    if(Name2ContentData.find(upperName) == Name2ContentData.end()) return false;
+    
+    //这实际上是一个数据空包，这个包仅仅用于map的查询
+    string data = "Inquire";
+    DataPackage datapack(name.c_str(), data.c_str(), data.size(), 0, 0);
+    return Name2ContentData[upperName].find(datapack) != Name2ContentData[upperName].end();
+}
+
+bool CSLRU::IsAllDataPackageByUpperName(string name){
+    std::lock_guard<mutex> judgeInlckByUpperName(cslrumtx);
+    return Name2ContentData.find(name) != Name2ContentData.end();
+}
+
 void CSLRU::printCSLRU(){
     cout << "=======================================" << endl;
     //输出lru则按照upperName下面来输出

@@ -79,6 +79,18 @@ private:
      */
     vector<DataPackage> getDataPackageBySegmentName(string name);
 
+    /**
+     * 通过InquirePackage　的contentName查询这个内容是否在Content Store中
+     * 这里contentName是segment包粒度的
+     */
+    bool IsDataPackageBySegmentName(string name);
+
+    /**
+     * 通过InquirePackage　的contentName查询这个内容是否在Content Store中
+     * 这里contentName是文件粒度的
+     */
+    bool IsAllDataPackageByUpperName(string name);
+
 public:
 
     
@@ -117,6 +129,11 @@ public:
      * 这个的判断粒度是segment级别，因为收到的所有DataPackage都是这个级别的
     */
     bool IsDataPackageInContentStore(DataPackage datapack);
+
+    /**
+     * 当同级别其他ICN节点上有InquirePackage来查询本地是否有内容的时候，调用此接口
+     */
+    bool IsDataPackageInContentStore(string name);
     
     void printCSLRU();
 
