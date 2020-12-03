@@ -49,6 +49,41 @@ private:
      */
     unordered_set<string> localNames;
 
+    /**
+     * 标识此ICN节点的名称
+     */
+    string LocalName;
+
+    /**
+     * 标识ICN节点在第几层
+     */
+    int layer;
+    
+    /**
+     * 第二层GEO的总数
+     */
+    int layer2sz;
+    /**
+     * 如果在第二层GEO，涉及到环状所以需要需要知道在环里面的位置 
+     */
+    int position;
+
+    /**
+     * FIB转发表的分级结构
+     */
+    vector<vector<pair<string, string>>> FIBstructure;
+
+    /**
+     * 记录当这个ICN节点发现其没有内容之后需要向本级查询的节点列表
+     * 在FIB初始化的时候就应该将其填充，避免多次查询影响效率
+     */
+    vector<string> ForwardingIPlist;
+
+    /**
+     * 只支持layer == 1 和　layer == 2
+     */
+    void formForwardingIPlist(int layer, Json::Value &root);
+
     FIB();
     static FIB* fibInstance;
 
@@ -89,7 +124,12 @@ public:
      * 下一步计划，如果不知道转发至哪里，则转发至上级。
      * 比如：高轨卫星转发至地面信关站ICN节点，地面ICN 节点转发至信源端，表示请求源端发送新的文件等内容
      */
-    vector<pair<string, unsigned short>> getForwardingFaces(string name);
+    vector<string> getForwardingFaces(string name);
+
+    /**
+     *　当本级别没用内容的时候， 获得上一级的转发ICN节点的IP
+     */
+    string getUpperLevelForwardingIP();
 
 };
 

@@ -41,13 +41,15 @@ private:
 
     void InitDataProc();
 
-    vector<string> getContentStoreNameList(string name);
-
-    void insertDataInContentStore(string name, char* data, int length);
+    void insertDataInContentStore(DataPackage datapack);
 
     vector<pair<string, unsigned short>> getPendingFaceInPIT(string name);
 
     void deletePendingFaceInPIT(string name);
+
+    bool IsDataPackageInContentStore(DataPackage datapack);
+
+    void printInfo(DataPackage datapack);
 
 public:
     DataProc();

@@ -20,10 +20,16 @@ void InterestProc::InitInterestProc(){
     //parse variables
     InterestPort = (unsigned short) root["InterestPort"].asUInt();
     DataPort = (unsigned short) root["DataPort"].asUInt();
+    InquirePort = (unsigned short) root["InquirePort"].asUInt();
+    InquireBindPort = (unsigned short) root["InquireBindPort"].asUInt();
+    tv_sec = root["tv_sec"].asInt();
+    tv_usec = root["tv_usec"].asInt();
     ifs.close();
 
     // bind port by IntestSocket
     udpInterestSocket.create(InterestPort);
+    // bind port by inquireSocket
+    inquireSocket.create(InquireBindPort);
 
     // get Sigleton instance
     cslruInstance = CSLRU::GetInstance(100);
@@ -39,6 +45,8 @@ void InterestProc::procInterestPackage(){
     /**
      * 我当前的逻辑是，发送的兴趣包应该是统一的格式，都是 pku/eecs/ICN_EGS_1/ICN_GEO_1/file/testFile.txt/segment1 这类形式， 也就是说都有segment部分
      * 先完成规范格式的开发，对于pku/eecs/ICN_EGS_1/ICN_GEO_1/file/testFile.txt这样的格式交由上层处理，先不用管，都是分成最细的包的形式
+     * 11月23日修改：
+     * 发送的兴趣包的逻辑应该是：正常情况下发送的是：pku/eecs/file/test1.txt 这种．当上层的服务发现有一些包丢失需要重传，也会发送类似于pku/eecs/file/test1.txt/segment1 这种Interest包
      */
     while (true)
     {
@@ -50,54 +58,52 @@ void InterestProc::procInterestPackage(){
         InterestPackage interestPackage;
         memcpy(&interestPackage, recvInterestBuf, sizeof(interestPackage));
         string name = interestPackage.contentName;
-        vector<string> contentNameVec = getContentStoreNameList(name);
+        
+        vector<DataPackage> ContentDataVec = getContentStoreDataList(name);
 
         // 找到了所需要的包
-        if(contentNameVec.size() != 0){
-            cout << "[Info]: Name in Content Store!" << endl;
-            for(int i = 0; i < contentNameVec.size(); i++){
-                //将包封装成datapakcage并发送
-                char* data = getContentStoreData(contentNameVec[i]);
-                int length = getContentStoreDataLength(contentNameVec[i]);
-                DataPackage dataPackage(contentNameVec[i].c_str(), data, length);
-                char sendbuffer[1460];
-                memcpy(sendbuffer, &dataPackage, sizeof(sendbuffer));
+        if(ContentDataVec.size() != 0){
+            cout << "[Info]: Find Package in Content Store!" << endl;
+            for(int i = 0; i < ContentDataVec.size(); i++){
+                char sendbuffer[1470];
+                memcpy(sendbuffer, &ContentDataVec[i], sizeof(sendbuffer));
                 udpInterestSocket.sendbuf(sendbuffer, sizeof(sendbuffer), srcip_, DataPort);
-                cout << "[info] send data to " << srcip_ << ":" << DataPort << " ContentName: " << contentNameVec[i] << " Data: " << dataPackage.data <<endl;
+                cout << "[info] send data to " << srcip_ << ":" << DataPort << " ContentName: " << ContentDataVec[i].contentName << " Data: " << ContentDataVec[i].data <<endl;
             }
         }
-        // 在content Store中没有找到
+        //在content Store中没有找到
         else{
-            //首先在PIT表中找,如果找到了则更新PIT表并丢弃Interest包
+            //首先在PIT表中找这个ContentName是不是已经在等待了,如果找到了则更新PIT表并丢弃Interest包
             if(isNameExistInPIT(name)){
                 // 这里面port写sport_或者dataPort都行，因为数据转发固定是DataPort不会看存入这个PIT的port是什么
                 this->insertIpAndPortByContentName(name, srcip_, sport_);
                 cout << "[1]Insert Into PIT: " << name << " IP: " << srcip_ << " Port: " << sport_ << endl;
             }
-            //PIT表中没有
+            /**
+             * PIT表中没有，需要查找本级节点有无
+             * 有则转发至本级节点，无则转发至上级默认ICN节点
+             */
             else{
-                /**
-                 * 首先查询FIB表中有无可以转发的路径
-                 * 1）如果是指向本地的请求（前面已经没用命中ContentStore了）或者没能在FIB中找到转发接口则丢弃
-                 * 2）在FIB中找到转发接口，则将其转发
-                 */
-                if(!isMatchLocalNames(name)){
-                    vector<pair<string, unsigned short>> pendingFace = getForwardingFaces(name);
-                    /*必须是找到了，才能够更新PIT表，否则就直接扔掉了*/
-                    if(pendingFace.size() > 0){
 
-                        // 1. 先向PIT表中插入表项   
-                        insertIpAndPortByContentName(name, srcip_, sport_);
-                        cout << "[2]Insert Into PIT: " << name << " IP: " << srcip_ << " Port: " << sport_ << endl;
-                        // 2. 将Interest包转发给应该去的地方
-                        for(int i = 0; i < pendingFace.size(); i++){
-                            udpInterestSocket.sendbuf(recvInterestBuf, 100, pendingFace[i].first, pendingFace[i].second);
-                            cout << "[Info] Sending Interest Package to " << pendingFace[i].first << ":" << pendingFace[i].second << endl;
-                        }
-                    }
-                    else{
-                        cout << "No match in FIB" << endl;
-                    }
+                //向PIT表中插入这条转发信息
+                insertIpAndPortByContentName(name, srcip_, sport_);
+                cout << "[2]Insert Into PIT: " << name << " IP: " << srcip_ << " Port: " << sport_ << endl;
+                
+                vector<string> forwardingFaceList = getForwardingFaces(name);
+                
+                //先向本级查询，如果没有结果，则向上级查询
+                string IPForForwarding = getThisLevelIPIfContentExist(forwardingFaceList, interestPackage);
+                
+                //如果能在同级别找到，则将Interest包转发到同级别IP上
+                if(!IPForForwarding.empty()){
+                    udpInterestSocket.sendbuf(recvInterestBuf, 100, IPForForwarding, InterestPort);
+                    cout << "[3]Forwarding Interest Package to same level: " << name << " IP: " << srcip_ << " Port: " << sport_ << endl;
+                }
+                //否则转发到默认的上级ICN节点上
+                else{
+                    string upperIP = getUpperLevelIP();
+                    udpInterestSocket.sendbuf(recvInterestBuf, 100, upperIP, InterestPort);
+                    cout << "[3]Forwarding Interest Package to upper level: " << name << " IP: " << srcip_ << " Port: " << sport_ << endl;
                 }
             }
         }
@@ -105,16 +111,8 @@ void InterestProc::procInterestPackage(){
     udpInterestSocket.Close();
 }
 
-vector<string> InterestProc::getContentStoreNameList(string name){
+vector<DataPackage> InterestProc::getContentStoreDataList(string name){
     return cslruInstance->getAllRelatedContentPackage(name);
-}
-
-char* InterestProc::getContentStoreData(string name){
-    return cslruInstance->getContentData(name);
-}
-
-int InterestProc::getContentStoreDataLength(string name){
-    return cslruInstance->getContentLength(name);
 }
 
 bool InterestProc::isNameExistInPIT(string name){
@@ -134,7 +132,52 @@ bool InterestProc::isMatchLocalNames(string name){
     return fibInstance->isMatchLocalNames(UpperName);
 }
 
-vector<pair<string, unsigned short>> InterestProc::getForwardingFaces(string name){
+/**
+ * 目前来看这个入参没什么意义，因为只要确定了层数，转发的接口是固定的
+ */
+vector<string> InterestProc::getForwardingFaces(string name){
     string UpperName = fibInstance->getUpperContent(name);
     return fibInstance->getForwardingFaces(UpperName);
+}
+
+string InterestProc::getThisLevelIPIfContentExist(vector<string> &forwardingFaceList, InterestPackage &interestpack){
+    string ret = "";
+    struct timeval tv;
+    fd_set readfds;
+    int lenrecv;
+    string srcip_;
+    unsigned short sport_;
+    char sendbuffer[100];
+    char recvbuffer[1470];
+    
+    memcpy(sendbuffer, &interestpack, sizeof(sendbuffer));
+    for(int i = 0; i < forwardingFaceList.size(); i++){
+        FD_ZERO(&readfds);
+        FD_SET(inquireSocket.sock, &readfds);
+        tv.tv_sec = tv_sec;
+        tv.tv_usec = tv_usec;
+        
+        udpInterestSocket.sendbuf(sendbuffer, sizeof(sendbuffer), forwardingFaceList[i], InquirePort);
+        select(inquireSocket.sock + 1, &readfds, NULL, NULL, &tv);
+        if(FD_ISSET(inquireSocket.sock, &readfds)){
+            if((lenrecv = inquireSocket.recvbuf(recvbuffer, sizeof(recvbuffer), srcip_, sport_)) >= 0){
+                //显然应该是有才行，而这里的逻辑是只要接收到就行．这是为了测试方便
+                return srcip_;
+            }
+        }
+        else{
+            cout << "[Info] Timeout from " << forwardingFaceList[i] << endl;
+        }
+    }
+    return ret;
+}
+
+string InterestProc::getUpperLevelIP(){
+    return fibInstance->getUpperLevelForwardingIP();
+}
+
+void InterestProc::printInfo(InterestPackage interestpack){
+    cout << "================Interest Package================" << endl;
+    cout << "[contentName] : " << interestpack.contentName << endl;
+    cout << "================================================" << endl;
 }

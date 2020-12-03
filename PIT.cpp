@@ -38,10 +38,21 @@ void PIT::insertIpAndPortByContentName(string name, string IP, unsigned short po
 vector<pair<string, unsigned short>> PIT::getPendingFace(string name){
     
     std::lock_guard<mutex> PITLock(pitmtx);
+    /**
+     * 有此情况下会用到这个函数：收到Data包之后，会查找PIT表来获得应该转发的端口．　Data包都是以segment包粒度进行传输的
+     * 正常情况下，Interest会发送UpperName也就是文件粒度的ContentName, 而Data包则以segmentName为粒度进行传输
+     * 先考虑正常情况,也就是Interest包以文件粒度进行传输，Data包以segmentName为粒度进行传输
+     */
     vector<pair<string, unsigned short>> ret;
-    //需要分两种情况：
-    // 比如说 pku/eecs/video/testfile.txt/segment1 这类具体包数据应该直接能够找到
-    auto it = ContentName2IPPort.find(name);
+    
+    //因为只有接收到DataPackage之后会用到这个函数，所以一定都是都是包粒度的
+    string upperName = getUpperName(name);
+    if(upperName.empty()){
+        cout << "[Error] Invalid Content Name In Data Package, name is: " << name << endl;
+        return ret;
+    }
+    //在map中查找 pku/eecs/file/test1.txt之类的包
+    auto it = ContentName2IPPort.find(upperName);
     //直接找到了，说明是类似pku/eecs/video/testfile.txt/segment1这种
     if(it != ContentName2IPPort.end()){
         auto IPPortSet = it->second;
@@ -51,21 +62,8 @@ vector<pair<string, unsigned short>> PIT::getPendingFace(string name){
         return ret;
     }
     else{
-        //没找到，说明需要向上级寻找,将pku/eecs/video/testfile.txt/segment1 转换成 pku/eecs/video/testfile.txt 再次寻找
-        string UpperStr = getUpperContentName(name);
-
-        //理论上不会出现字符串不合规的情况，但是一旦出现要进行处理
-        if(UpperStr.empty()) return ret;
-        
-        auto uppiter = ContentName2IPPort.find(UpperStr);
-        //如果经过上级寻找找到了
-        if(uppiter != ContentName2IPPort.end()){
-            auto IPPortSet = uppiter->second;
-            for(auto itpair = IPPortSet.begin(); itpair != IPPortSet.end(); itpair++){
-                ret.push_back(*itpair);
-            }
-        }
-        return ret;
+        //没找到
+        cout << "[Info] No Content Name in ContentName2IPPort, name is: " << name << endl;
     }
     return ret;
 }
@@ -95,6 +93,14 @@ void PIT::deleteContentName(string name){
     return;
 }
 
+string PIT::getUpperName(string name){
+    string upperName = "";
+    size_t position = name.find("segment");
+    if(position == string::npos){
+        return upperName;
+    }
+    return name.substr(0, position - 1);
+}
 void PIT::printPIT(){
     cout << "========================================="<<endl;
     for(auto iter = ContentName2IPPort.begin(); iter != ContentName2IPPort.end(); iter++){

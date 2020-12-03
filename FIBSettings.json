@@ -1,5 +1,20 @@
 {
-    "commentLocal" : "LocalContent包含自己的位置信息，以及包含了支持的三个种类的信息.FIB表之和Interest包有关，设定Interest转发端口是51001, data包转发端口是51002",
+    "commentLocal" : "FIB表表示Interest的转发原则．设定Interest转发端口是51001, data包转发端口是51002",
+    "NameComment": "唯一标识这个ICN节点的名称，之后还可以确定此节点在整个ICN网络中的位置",
+    "Name": "ICN_GEO_1",
+    "layerComment":"layer0表示源客户端; layer1表示第一级也就是地面网络的ICN，layer2表示第二级也就是GEO级别的ICN. 不同级别的ICN的同级询问的方式不一样．初步决定layer1全部轮询，而layer2只查询左右两颗星",
+    "layer0": [
+        {"name": "Source1", "IP": "162.105.85.184"}
+    ],
+    "layer1" : [
+        {"name": "ICN_EGS_1", "IP": "162.105.85.188"},
+        {"name": "ICN_EGS_2", "IP": "162.105.85.110"}
+    ],
+    "layer2":[
+        {"name": "ICN_GEO_1", "IP": "162.105.85.63"},
+        {"name": "ICN_GEO_2", "IP": "162.105.85.235"},
+        {"name": "ICN_GEO_3", "IP": "162.105.85.247"}
+    ],
     "Location" : "pku/eecs/ICN_EGS_1/ICN_GEO_1",
     "LocalContent" : [
         "pku/eecs/ICN_EGS_1/ICN_GEO_1/file",

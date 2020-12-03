@@ -1,47 +1,40 @@
 #include "CS_LRU.h"
 CSLRU::CSLRU(int _size){
     this->size = _size;
-
     /*我在这里加上一些测试语句方便测试，之后删除11月19日*/
-    string str1 = "pku/eecs/ICN_EGS_1/ICN_GEO_1/file/test1.txt/segment1";
+    string str1 = "pku/eecs/file/test1.txt/segment1";
     char *strcontent1 = "teststrlength=16";
-    
-    string str2 = "pku/eecs/ICN_EGS_1/ICN_GEO_1/file/test1.txt/segment2";
+    DataPackage package1(str1.c_str(), strcontent1, strlen(strcontent1), 1, 0);
+
+    string str2 = "pku/eecs/file/test1.txt/segment2";
     char *strcontent2 = "testteststrlength=20";
+    DataPackage package2(str2.c_str(), strcontent2, strlen(strcontent2), 1, 0);
 
-    string str3 = "pku/eecs/ICN_EGS_1/ICN_GEO_1/video/test1.txt/segment1";
-    char *strcontent3 = "testtestteststrlaeangth=26";
-    
-    string str4 = "pku/eecs/ICN_EGS_1/ICN_GEO_1/video/test2.txt/segment1";
-    char *strcontent4 = "testtesttestteststrlength=28";
-    
-    string str5 = "pku/eecs/ICN_EGS_1/ICN_GEO_1/video/test2.txt/segment2";
-    char *strcontent5 = "testtesttesttestteststrlength=32";
+    string str3 = "pku/eecs/file/test1.txt/segment3";
+    char *strcontent3 = "testteststrlength=28";
+    DataPackage package3(str3.c_str(), strcontent3, strlen(strcontent3), 1, 0);
 
-    string str6 = "pku/eecs/ICN_EGS_1/ICN_GEO_1/video/test2.txt/segment3";
-    char *strcontent6 = "testtesttesttesttestteststrlength=36";
+    string str4 = "pku/eecs/file/test2.txt/segment4";
+    char *strcontent4 = "testteststrlength=22";
+    DataPackage package4(str4.c_str(), strcontent4, strlen(strcontent4), 1, 0);
 
-    string str7 = "pku/eecs/ICN_EGS_1/ICN_GEO_1/msg/test1.txt/segment1";
-    char *strcontent7 = "testtesttesttesttesttestteststrlengthh=41";
+    string str5 = "pku/eecs/file/test2.txt/segment1";
+    char *strcontent5 = "testteststrlength=23";
+    DataPackage package5(str5.c_str(), strcontent5, strlen(strcontent5), 1, 0);
     
-    putContentNameAndDataAndLengthNoLock(str1, strcontent1, strlen(strcontent1));
-    putContentNameAndDataAndLengthNoLock(str2, strcontent2, strlen(strcontent2));
-    putContentNameAndDataAndLengthNoLock(str3, strcontent3, strlen(strcontent3));
-    putContentNameAndDataAndLengthNoLock(str4, strcontent4, strlen(strcontent4));
-    putContentNameAndDataAndLengthNoLock(str5, strcontent5, strlen(strcontent5));
-    putContentNameAndDataAndLengthNoLock(str6, strcontent6, strlen(strcontent6));
-    putContentNameAndDataAndLengthNoLock(str5, strcontent5, strlen(strcontent5));
-    putContentNameAndDataAndLengthNoLock(str7, strcontent7, strlen(strcontent7));
-    
+    putContentNameAndDataAndLengthNoLock(package1);
+    putContentNameAndDataAndLengthNoLock(package2);
+    putContentNameAndDataAndLengthNoLock(package3);
+    putContentNameAndDataAndLengthNoLock(package4);
+    putContentNameAndDataAndLengthNoLock(package5);
 }
-CSLRU::~CSLRU(){
 
-    list<string>::iterator it = lru.begin();
-    while (it != lru.end())
+CSLRU::~CSLRU(){
+    //我还不能确定这么写对不对
+    while (lru.size() > 0)
     {
-        string delstr = *it;
-        it++;
-        deleteContentDataAndLength(delstr);
+        string delstr = lru.front();
+        deleteAllDataPackageByUpperName(delstr);        
     }
     if(CSLRU::cslruInstance){
         delete CSLRU::cslruInstance;
@@ -62,93 +55,65 @@ CSLRU* CSLRU::GetInstance(int _size){
     return cslruInstance;
 }
 
-char* CSLRU::getContentData(string name){
-
-    std::lock_guard<mutex> getContentDatalck(cslrumtx);
-    //如果没有这个Content Name
-    if(Name2ContentData.find(name) == Name2ContentData.end()){
-        return NULL;
-    }
-    //需要在lru中更新它的位置,放在队首
-    if(Name2ContentData.count(name)) lru.erase(Name2Itermap[name]);
-    lru.push_front(name);
-    Name2Itermap[name] = lru.begin();
-    
-    return Name2ContentData[name];
-}
-
-int CSLRU::getContentLength(string name){
-
-    std::lock_guard<mutex> getContentLengthlck(cslrumtx);
-    if(Name2ContentLength.find(name) == Name2ContentLength.end()){
-        return -1;
-    }
-
-    //因为getContentData这个函数一定要和getContentLength一起执行，那么此函数就不需要执行调整lru了
-    return Name2ContentLength[name];
-
-}
-
-
-void CSLRU::putContentNameAndDataAndLength(string name, char* data, int length){
+void CSLRU::putContentNameAndDataAndLength(DataPackage datapack){
     
     std::lock_guard<mutex> putContentlck(cslrumtx);
-    //如果之前就有这个ContentName了，那么直接替换掉就可以了。不论当前有多少个元素，直接替换不会使得超过原来的元素数量
-    unordered_map<string, char*>::iterator it = Name2ContentData.find(name);
+    
+    //1. 先取得UpperName
+    string name = getUpperName((string)datapack.contentName);
+    if(name.empty()){
+        cout << "[Error] Invalid Content Name, name is " << datapack.contentName << endl;
+        return;
+    }
+    //2. 查询这个UpperName(也就是这个name)
+    unordered_map<string, unordered_set< DataPackage, package_hash_cs>>::iterator it = Name2ContentData.find(name);
     if(it != Name2ContentData.end()){
-        //将此重复元素放在队首
+        //将此name放在lru的队首表示访问过这个name
         lru.erase(Name2Itermap[name]);
         lru.push_front(name);
         Name2Itermap[name] = lru.begin();
 
-        //释放原有空间
-        char* delContentData = Name2ContentData[name];
-        delete []delContentData;
-        
-        char* newContentData = new char[length];
-        memcpy(newContentData, data, length);
-        
-        //更新数据和长度
-        Name2ContentData[name] = newContentData;
-        Name2ContentLength[name] = length;    
+        /**
+         * 插入这条数据. 这里插入的原则是：因为全局命名唯一，那么只要收到了一个datapack之后就需要查找有无．
+         * 如果有则替换，无则插入即可
+         */
+        auto iter = Name2ContentData[name].find(datapack);
+        if(iter != Name2ContentData[name].end()) {
+            Name2ContentData[name].erase(iter);
+        }
+        Name2ContentData[name].insert(datapack);
         return;
     }
-
+    //以下是没有的情况，分成超过额定size和没有超过来讨论
     //如果当前数量已经大于lru的额定数量，且与原有的ContentName不重复
     if(Name2ContentData.size() >= size){
-        //先查找之前有没有同样的ContentName作为key的
         
         //先删除之前的最后一个
         string delName = lru.back();
         
-        //释放之前的char数组空间
-        unordered_map<string, char*>::iterator it = Name2ContentData.find(delName);
+        //释放资源
+        //1)释放之前的DataPack数组空间
+        unordered_map<string, unordered_set< DataPackage, package_hash_cs>>::iterator it = Name2ContentData.find(delName);
         if(it != Name2ContentData.end()){
-            char* delContentData = it->second;
-            delete []delContentData;
+            Name2ContentData.erase(delName);
         }
-
-        //释放lru中最后出现的这个string
+        //2)释放lru中最后出现的这个string,注意lru中存放的都是UpperName
         lru.pop_back();
-        //释放delName对应的数组指针
-        Name2ContentData.erase(delName);
-        //释放delName对应的数组长度
-        Name2ContentLength.erase(delName);
-        //释放delName对应的迭代器
+        //3)释放delName对应的迭代器
         Name2Itermap.erase(delName);
     }
-    //插入新的数据
-    char* newContentData = new char[length];
-    memcpy(newContentData, data, length);
-    //更新顺序
+    //插入新的DataPackage
+    // 1)先更新lru的顺序
     lru.push_front(name);
     Name2Itermap[name] = lru.begin();
-    //更新数据和长度
-    Name2ContentData[name] = newContentData;
-    Name2ContentLength[name] = length;
+    // 2)再更新数据包
+    Name2ContentData[name].insert(datapack);
 }
-    
-void CSLRU::deleteContentDataAndLength(string name){
+
+/**
+ * 这个的粒度是upperName,　也就是 pku/eecs/file/test.txt, 因为会释放掉这个文件下面的所有的segment包    
+ */
+void CSLRU::deleteAllDataPackageByUpperName(string name){
 
     std::lock_guard<mutex> deleteContentlck(cslrumtx);
     if(Name2Itermap.count(name)){
@@ -156,128 +121,156 @@ void CSLRU::deleteContentDataAndLength(string name){
         Name2Itermap.erase(name);
     }
 
-    //释放指针数组的空间
-    unordered_map<string, char*>::iterator it = Name2ContentData.find(name);
+    //释放这个upperName下面的所有segment包空间
+    auto it = Name2ContentData.find(name);
     if(it != Name2ContentData.end()){
-        char* delContentData = it->second;
-        delete []delContentData;
-    }
-    
-    Name2ContentData.erase(name);
-    Name2ContentLength.erase(name);   
+        Name2ContentData.erase(it);
+    }   
 }
+
 /**
- * 比如说一个请求可能请求的是pku/eecs/video/testfile.txt
- * 根据现有的缓存查找出所有合适的缓存，比如说pku/eecs/video/testfile.txt/segment1 pku/eecs/video/testfile.txt/segment2等等。
+ * 比如说一个请求ContentName可能请求的是pku/eecs/video/testfile.txt 也有可能是pku/eecs/video/testfile.txt/segment1
+ * 根据上面不同的ContentName来用不同的方式来获得对应的数据包
+ * 对于文件粒度，就获得所有的下面的segment包; 对于segment粒度，则直接获取到这个粒度的包就行
  */
-vector<string> CSLRU::getAllRelatedContentPackage(string name){
+vector<DataPackage> CSLRU::getAllRelatedContentPackage(string name){
+    //这里有点问题：我没有把它获得的stringname 放在lru的头部
+    //这里不需要加锁，因为子函数里面加了锁
+    vector<DataPackage> ret;
     
-    vector<string> ContentNameVector;
-    vector<string> ret;
-    
-    //将输入的name按照 / 拆分成多个
-    SplitString(name, ContentNameVector);
-    
-    std::lock_guard<mutex> getAllRelatedContentlck(cslrumtx);
-    //这里优化以下查找速度，如果最后一个 / 后面的字段包含segment那么就认为已经是最长匹配目录了，这种情况下已经只有自己
-    if(ContentNameVector.size() >= 1 && ContentNameVector[ContentNameVector.size() - 1].find("segment") != string::npos){
-        //必须有这个内容才可以
-        if(Name2ContentData.find(name) != Name2ContentData.end() && Name2ContentLength.find(name) != Name2ContentLength.end()) ret.push_back(name);
+    if(name.find("segment") != string::npos){
+        //以包名为粒度
+        return getDataPackageBySegmentName(name);
+    }
+    else{
+        //这个包以文件为粒度
+        return getAllDataPackageByUpperName(name);
+    }
+}
+
+vector<DataPackage> CSLRU::getAllDataPackageByUpperName(string upperName){
+    std::lock_guard<mutex> getAllDataPackagelck(cslrumtx);
+    vector<DataPackage> ret;
+    auto it = Name2ContentData.find(upperName);
+    if(it == Name2ContentData.end()){
         return ret;
     }
-    //遍历lru查找所有符合条件的
-    list<string>::iterator it = lru.begin();
-    while (it != lru.end())
-    {
-        if((*it).find(name) != string::npos) ret.push_back(*it);
-        it++;
+    unordered_set< DataPackage, package_hash_cs> packset = it->second;
+    for(auto setIter = packset.begin(); setIter != packset.end(); setIter++){
+        ret.push_back(*setIter);
     }
+    sort(ret.begin(), ret.end());
     return ret;
 }
 
-void CSLRU::SplitString(string& s, vector<string>& v){
+vector<DataPackage> CSLRU::getDataPackageBySegmentName(string name){
+    
+    vector<DataPackage> ret;
+    string upperName = getUpperName(name);
+    if(upperName.empty()) return ret;
 
-    string c = "/";
-    std::string::size_type pos1, pos2;
-    pos2 = s.find(c);
-    pos1 = 0;
-    while(std::string::npos != pos2)
-    {
-        v.push_back(s.substr(pos1, pos2-pos1));
- 
-        pos1 = pos2 + c.size();
-        pos2 = s.find(c, pos1);
+    std::lock_guard<mutex> getDataPackagelck(cslrumtx);
+    auto it = Name2ContentData.find(upperName);
+    if(it == Name2ContentData.end()) return ret;
+
+    unordered_set< DataPackage, package_hash_cs> contentset = it->second;
+    for(auto setIter = contentset.begin(); setIter != contentset.end(); setIter++){
+        string compareName = (string)(setIter->contentName);
+        if(name == compareName){
+            ret.push_back(*setIter);
+            break;
+        }
     }
-    if(pos1 != s.length())
-        v.push_back(s.substr(pos1));
+    sort(ret.begin(), ret.end());
+    return ret;
+}
+
+bool CSLRU::IsDataPackageInContentStore(DataPackage datapack){
+    std::lock_guard<mutex> judgeInlck(cslrumtx);
+    string name = datapack.contentName;
+    string UpperName = getUpperName(name);
+    auto it = Name2ContentData.find(UpperName);
+    if(it == Name2ContentData.end()) return false;
+    auto iter = Name2ContentData[UpperName].find(datapack);
+    return iter != Name2ContentData[UpperName].end();
 }
 
 void CSLRU::printCSLRU(){
-    cout << "==========================" << endl;
+    cout << "=======================================" << endl;
+    //输出lru则按照upperName下面来输出
     list<string>::iterator it = lru.begin();
     while (it != lru.end())
     {
-        cout << "Name: " << *it << " ContentData: " << Name2ContentData[*it] << " ContentLength: " << Name2ContentLength[*it] << endl;
+        cout << "------------"<< *it << "-------------" << endl;
+        //按照upperName分级输出
+        string upperName = *it;
+        unordered_set< DataPackage, package_hash_cs> mySet = Name2ContentData[upperName];
+        for(auto setIter = mySet.begin(); setIter != mySet.end(); setIter++){
+            cout << "ContentName: " << setIter->contentName << " Data: " << setIter->data << " SegmentNum: " << setIter->segmentNum << " IsEnd: " << setIter->end << endl;
+        }
         it++;
     }
-    cout << Name2ContentData.size() << " " << Name2ContentLength.size() << " " << Name2Itermap.size() << endl;
-    cout << "==========================" << endl;
+    cout << "=======================================" << endl;
 }
 
 //这个函数在构造函数中使用．开发结束就删除．
-void CSLRU::putContentNameAndDataAndLengthNoLock(string name, char* data, int length){
-    
-    //如果之前就有这个ContentName了，那么直接替换掉就可以了。不论当前有多少个元素，直接替换不会使得超过原来的元素数量
-    unordered_map<string, char*>::iterator it = Name2ContentData.find(name);
+void CSLRU::putContentNameAndDataAndLengthNoLock(DataPackage datapack){
+    //1. 先取得UpperName
+    string name = getUpperName((string)datapack.contentName);
+    if(name.empty()){
+        cout << "[Error] Invalid Content Name, name is " << datapack.contentName << endl;
+        return;
+    }
+    //2. 查询这个UpperName(也就是这个name)
+    unordered_map<string, unordered_set< DataPackage, package_hash_cs>>::iterator it = Name2ContentData.find(name);
     if(it != Name2ContentData.end()){
-        //将此重复元素放在队首
+        //将此name放在lru的队首表示访问过这个name
         lru.erase(Name2Itermap[name]);
         lru.push_front(name);
         Name2Itermap[name] = lru.begin();
 
-        //释放原有空间
-        char* delContentData = Name2ContentData[name];
-        delete []delContentData;
-        
-        char* newContentData = new char[length];
-        memcpy(newContentData, data, length);
-        
-        //更新数据和长度
-        Name2ContentData[name] = newContentData;
-        Name2ContentLength[name] = length;    
+        /**
+         * 插入这条数据. 这里插入的原则是：因为全局命名唯一，那么只要收到了一个datapack之后就需要查找有无．
+         * 如果有则替换，无则插入即可
+         */
+        auto iter = Name2ContentData[name].find(datapack);
+        if(iter != Name2ContentData[name].end()) {
+            Name2ContentData[name].erase(iter);
+        }
+        Name2ContentData[name].insert(datapack);
         return;
     }
-
+    //以下是没有的情况，分成超过额定size和没有超过来讨论
     //如果当前数量已经大于lru的额定数量，且与原有的ContentName不重复
     if(Name2ContentData.size() >= size){
-        //先查找之前有没有同样的ContentName作为key的
         
         //先删除之前的最后一个
         string delName = lru.back();
         
-        //释放之前的char数组空间
-        unordered_map<string, char*>::iterator it = Name2ContentData.find(delName);
+        //释放资源
+        //1)释放之前的DataPack数组空间
+        unordered_map<string, unordered_set< DataPackage, package_hash_cs>>::iterator it = Name2ContentData.find(delName);
         if(it != Name2ContentData.end()){
-            char* delContentData = it->second;
-            delete []delContentData;
+            Name2ContentData.erase(delName);
         }
-
-        //释放lru中最后出现的这个string
+        //2)释放lru中最后出现的这个string,注意lru中存放的都是UpperName
         lru.pop_back();
-        //释放delName对应的数组指针
-        Name2ContentData.erase(delName);
-        //释放delName对应的数组长度
-        Name2ContentLength.erase(delName);
-        //释放delName对应的迭代器
+        //3)释放delName对应的迭代器
         Name2Itermap.erase(delName);
     }
-    //插入新的数据
-    char* newContentData = new char[length];
-    memcpy(newContentData, data, length);
-    //更新顺序
+    //插入新的DataPackage
+    // 1)先更新lru的顺序
     lru.push_front(name);
     Name2Itermap[name] = lru.begin();
-    //更新数据和长度
-    Name2ContentData[name] = newContentData;
-    Name2ContentLength[name] = length;
+    // 2)再更新数据包
+    Name2ContentData[name].insert(datapack);
+}
+
+string CSLRU::getUpperName(string name){
+    string upperName = "";
+    size_t position = name.find("segment");
+    if(position == string::npos){
+        return upperName;
+    }
+    return name.substr(0, position - 1);
 }

@@ -30,15 +30,18 @@ class PIT{
 private:
     /**
      * 存放一个ContentName和一组IP port之间的关系
-     * ContentName表示当前请求的名字，比如pku/eecs/video/textfile
-     * IP port标识请求来源的端口
-     * 这样当data到来的时候根据data就可以找到源端口进行转发
+     * ContentName表示当前请求的名字，比如　pku/eecs/video/test1.txt
+     * IP port标识请求来源的端口, 这样当data到来的时候根据data就可以找到源端口进行转发
+     * 需要注意的是，ContentName2IPPort的key初步设定是文件粒度，即　pku/eecs/video/test1.txt
+     * 至于segment包粒度，也就是涉及到错误重传，目前还不支持
      */
     unordered_map<string, unordered_set< pair<string, unsigned short>, pair_hash > > ContentName2IPPort;
 
     //单例模式
     PIT();
     static PIT* pitInstance;
+
+    string getUpperName(string name);
 
 public:
     

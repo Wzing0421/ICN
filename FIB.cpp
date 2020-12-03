@@ -32,42 +32,40 @@ void FIB::initFIB(){
         return;
     }
     
-    //parse local content names
-    string Location = root["Location"].asString();
-    localNames.insert(Location);
-    int contentsz = root["LocalContent"].size();
-    for(int i = 0; i < contentsz; i++) {
-        localNames.insert(root["LocalContent"][i].asString());
-    }
+    //parse local names
+    LocalName = root["Name"].asString();
+    layer = -1;
+    position = -1;
+    layer2sz = -1;
 
-    //parse FIB Tables
-    int fibsz = root["forwardingTable"].size();
-    for(int i = 0; i < fibsz; i++){
-        Json::Value jsval = root["forwardingTable"][i];
-        string contentName = jsval["LocationName"].asString();
-        string IP = jsval["IP"].asString();
-        unsigned short port = (unsigned short) jsval["port"].asUInt();
-
-        unordered_set< pair<string, unsigned short>, pair_hash_fib > IPPortSet;
-        IPPortSet.insert(make_pair(IP, port));
-        ContentNameForwardMap[contentName] = IPPortSet;
-    }
-    // print FIB table
-    cout << "=======================" << endl;
-    for(auto it = localNames.begin(); it != localNames.end(); it++){
-        cout << *it << " ";
-    }
-    cout << endl;
-    cout << "-----------------------" << endl;
-    for(auto it = ContentNameForwardMap.begin(); it != ContentNameForwardMap.end(); it++){
-        auto myset = it->second;
-        cout << "ContentName: " << it->first << " ";
-        for(auto itset = myset.begin(); itset != myset.end(); itset++){
-            cout << itset->first << " " << itset->second;
+    //parse fib structure
+    for(int i = 0; i < 3; i++){
+        string layerstr = "layer" + to_string(i);
+        vector<pair<string, string>> NameIPVec;
+        int layersz = root[layerstr].size();
+        for(int j = 0; j < layersz; j++){
+            Json::Value jsval = root[layerstr][j];
+            string name = jsval["name"].asString();
+            if(name == LocalName){
+                layer = i;
+                position = j;
+            }
+            string ip = jsval["IP"].asString();
+            NameIPVec.push_back(make_pair(name, ip));
         }
-        cout << endl;
+        FIBstructure.push_back(NameIPVec);
     }
-    cout << "=======================" << endl;
+    layer2sz = root["layer2"].size();
+    if(layer == -1){
+        cout << "[Error] No name match in FIB settings!" << endl;
+    }
+    if(layer2sz == -1){
+        cout << "[Error] layer2 error in FIB settings!" << endl;
+    }
+
+    //获得同级转发列表
+    formForwardingIPlist(layer, root);
+
     ifs.close();
 }
 
@@ -81,33 +79,49 @@ bool FIB::isMatchLocalNames(string name){
 }
 
 /**
- * 从 pku/eecs/ICN_EGS_1/ICN_GEO_1/video/testfile.txt/segment1 应该转换成pku/eecs/ICN_EGS_1/ICN_GEO_1
- * 我这里ContentName确定一定会有file video msg三种之间的任意一种。所以根据这个找到上级就行
+ * 从 pku/eecs/file/test1.txt/segment1 应该转换成pku/eecs/file/test1.txt再查找应该转发的接口
+ * 其实这个函数没用，反正是返回同级的转发逻辑和接口
  */
 string FIB::getUpperContent(string name){
-    int position;
-    string ret = "";
-    if(string::npos != (position = name.find("file")) ){
-        ret = name.substr(0, position - 1);
-    }
-    else if(string::npos != (position = name.find("video")) ){
-        ret = name.substr(0, position - 1);
-    }
-    else if(string::npos != (position = name.find("msg")) ){
-        ret = name.substr(0, position - 1);
-    }
-    return ret;
+    int position = name.find("segment");
+    if(position == string::npos) return name;
+    return name.substr(0, position - 1);
 }
 
-vector<pair<string, unsigned short>> FIB::getForwardingFaces(string name){
-    vector<pair<string, unsigned short>> ret;
-    auto pairiter = ContentNameForwardMap.find(name);
-    if(pairiter == ContentNameForwardMap.end()){
-        return ret;
+vector<string> FIB::getForwardingFaces(string name){
+    return ForwardingIPlist;
+}
+
+void FIB::formForwardingIPlist(int layer, Json::Value &root){
+    /**
+     * 对于第一层，也就是地面的ICN节点，需要所有节点轮询一遍，注意去掉自己
+     */
+    string layerstr = "layer" + to_string(layer);
+    if(layer == 1){
+        for(int i = 0; i < root[layerstr].size(); i++){
+            Json::Value jsval = root[layerstr][i];
+            string name = jsval["name"].asString();
+            if(name != LocalName){
+                ForwardingIPlist.push_back(jsval["IP"].asString());
+            }
+        }
     }
-    unordered_set< pair<string, unsigned short>, pair_hash_fib > pairset = pairiter->second;
-    for(auto it = pairset.begin(); it != pairset.end(); it++){
-        ret.push_back(*it);
+    /**
+     * 对于第二层，也就是高轨卫星GEO,需要询问其左右两个
+     */
+    else if(layer == 2){
+        int leftpos = (position + layer2sz - 1) % layer2sz; 
+        int rightpos = (position + 1) % layer2sz;
+        Json::Value jsleftval = root[layerstr][leftpos];
+        ForwardingIPlist.push_back(jsleftval["IP"].asString());
+        Json::Value jsrightval = root[layerstr][rightpos];
+        ForwardingIPlist.push_back(jsrightval["IP"].asString());
     }
-    return ret;
+    else{
+        cout << "[Error] Invalid layer!" << endl;
+    }
+}
+
+string FIB::getUpperLevelForwardingIP(){
+    return FIBstructure[layer - 1][0].second;   
 }

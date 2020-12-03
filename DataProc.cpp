@@ -24,7 +24,6 @@ void DataProc::InitDataProc(){
 
     // bind port by IntestSocket
     udpDataSocket.create(DataPort);
-    cout << "bind success" << endl;
     // get Sigleton instance
     cslruInstance = CSLRU::GetInstance(100);
     pitInstance = PIT::GetInstance();
@@ -36,8 +35,11 @@ void DataProc::procDataPackage(){
     string srcip_;
     unsigned short sport_;
     /**
-     * 我当前的逻辑是，发送的兴趣包应该是统一的格式，都是 pku/eecs/ICN_EGS_1/ICN_GEO_1/file/testFile.txt/segment1 这类形式， 也就是说都有segment部分
-     * 先完成规范格式的开发，对于pku/eecs/ICN_EGS_1/ICN_GEO_1/file/testFile.txt这样的格式交由上层处理，先不用管，都是分成最细的包的形式
+     * 数据包应该都是以包为粒度，也就是包括了segment如
+     * pku/eecs/file/test1.txt/segment1 这样的形式
+     * 接收到DataPackage的时候，先查找内容缓存，查一下UpperName和对应的这个segmentName是不是都在
+     * 如果在则丢弃，如果不在则查找PIT表将其转发至等待源端口，并将其插入Content Store中
+     * 详见<清华大学　信息中心网络>　108页
      */
     while (true)
     {
@@ -49,20 +51,21 @@ void DataProc::procDataPackage(){
         DataPackage dataPackage;
         memcpy(&dataPackage, recvDataBuf, sizeof(DataPackage));
         string name = dataPackage.contentName;
-        
-        vector<string> contentNameVec = getContentStoreNameList(name);
  
-        // Content Store中没有这个包才可以进行下面的操作
-        if(contentNameVec.size() == 0){
+        // Content Store中没有这个DataPackage才可以进行下面的操作
+        if(!IsDataPackageInContentStore(dataPackage)){
 
-            cout << "[Info]: No Name in Content Store!" << endl;
+            cout << "[Info]: No DataPackage in Content Store! Package Name: " << dataPackage.contentName << endl;
             vector<pair<string, unsigned short>> pendingFaceVec = getPendingFaceInPIT(name);
             if(pendingFaceVec.size() > 0){
+                //先将 DataPackage 存入 Content Store
+                insertDataInContentStore(dataPackage);
+                //然后向源端口转发
                 for(int i = 0; i < pendingFaceVec.size(); i++){
                     udpDataSocket.sendbuf(recvDataBuf, sizeof(recvDataBuf), pendingFaceVec[i].first, DataPort);
-                    cout << "[Info] Forwarding data to: dstip " << pendingFaceVec[i].first << " ContentName: " << name << endl;
+                    cout << "[Info] Forwarding data package to: dstip " << pendingFaceVec[i].first << " ContentName: " << name << endl;
                 }
-                //删除PIT中的表项
+                //删除PIT中的表项. 这里面有问题，/segment粒度的包收到之后要删除文件粒度的pit这是不可接受的
                 deletePendingFaceInPIT(name);
             }
         }
@@ -74,12 +77,8 @@ void DataProc::procDataPackage(){
     udpDataSocket.Close();
 }
 
-vector<string> DataProc::getContentStoreNameList(string name){
-    return cslruInstance->getAllRelatedContentPackage(name);
-}
-
-void DataProc::insertDataInContentStore(string name, char* data, int length){
-    return cslruInstance->putContentNameAndDataAndLength(name, data, length);
+void DataProc::insertDataInContentStore(DataPackage datapack){
+    return cslruInstance->putContentNameAndDataAndLength(datapack);
 }
 
 vector<pair<string, unsigned short>> DataProc::getPendingFaceInPIT(string name){
@@ -88,4 +87,17 @@ vector<pair<string, unsigned short>> DataProc::getPendingFaceInPIT(string name){
 
 void DataProc::deletePendingFaceInPIT(string name){
     return pitInstance->deleteContentName(name);
+}
+
+bool DataProc::IsDataPackageInContentStore(DataPackage datapack){
+    return cslruInstance->IsDataPackageInContentStore(datapack);
+}
+void DataProc::printInfo(DataPackage datapack){
+    cout << "===========DataPackage===========" << endl;
+    cout << "[contentName] : " << datapack.contentName << endl;
+    cout << "[data]" << datapack.data << endl;
+    cout << "[datasize]" << datapack.datasize << endl;
+    cout << "[segmentNum]" << datapack.segmentNum << endl;
+    cout << "[end]" << datapack.end << endl;
+    cout << "=================================" << endl;
 }
