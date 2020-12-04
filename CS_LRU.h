@@ -83,13 +83,13 @@ private:
      * 通过InquirePackage　的contentName查询这个内容是否在Content Store中
      * 这里contentName是segment包粒度的
      */
-    bool IsDataPackageBySegmentName(string name);
+    bool IsContentNameInContentStoreBySegmentName(string name);
 
     /**
      * 通过InquirePackage　的contentName查询这个内容是否在Content Store中
      * 这里contentName是文件粒度的
      */
-    bool IsAllDataPackageByUpperName(string name);
+    bool IsContentNameInContentStoreByUpperName(string name);
 
 public:
 

@@ -198,15 +198,15 @@ bool CSLRU::IsDataPackageInContentStore(DataPackage datapack){
 bool CSLRU::IsDataPackageInContentStore(string name){
     if(name.find("segment") != string::npos){
         //以包名为粒度
-        return IsDataPackageBySegmentName(name);
+        return IsContentNameInContentStoreBySegmentName(name);
     }
     else{
         //这个包以文件为粒度
-        return IsAllDataPackageByUpperName(name);
+        return IsContentNameInContentStoreByUpperName(name);
     }
 }
 
-bool CSLRU::IsDataPackageBySegmentName(string name){
+bool CSLRU::IsContentNameInContentStoreBySegmentName(string name){
     string upperName = getUpperName(name);
     if(upperName.empty()) return false;
     
@@ -219,7 +219,7 @@ bool CSLRU::IsDataPackageBySegmentName(string name){
     return Name2ContentData[upperName].find(datapack) != Name2ContentData[upperName].end();
 }
 
-bool CSLRU::IsAllDataPackageByUpperName(string name){
+bool CSLRU::IsContentNameInContentStoreByUpperName(string name){
     std::lock_guard<mutex> judgeInlckByUpperName(cslrumtx);
     return Name2ContentData.find(name) != Name2ContentData.end();
 }
