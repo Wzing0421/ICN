@@ -10,8 +10,8 @@
 #include <iostream>
 #include <mutex>
 #include <fstream>
+#include <jsoncpp/json/json.h>
 
-#include "json/json.h"
 #include "CS_LRU.h"
 #include "FIB.h"
 #include "PIT.h"

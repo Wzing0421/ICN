@@ -12,11 +12,11 @@ CSLRU::CSLRU(int _size){
 
     string str3 = "pku/eecs/file/test1.txt/segment3";
     char *strcontent3 = "testteststrlength=28";
-    DataPackage package3(str3.c_str(), strcontent3, strlen(strcontent3), 1, 0);
+    DataPackage package3(str3.c_str(), strcontent3, strlen(strcontent3), 1, 1);
 
-    string str4 = "pku/eecs/file/test2.txt/segment4";
+    string str4 = "pku/eecs/file/test2.txt/segment2";
     char *strcontent4 = "testteststrlength=22";
-    DataPackage package4(str4.c_str(), strcontent4, strlen(strcontent4), 1, 0);
+    DataPackage package4(str4.c_str(), strcontent4, strlen(strcontent4), 1, 1);
 
     string str5 = "pku/eecs/file/test2.txt/segment1";
     char *strcontent5 = "testteststrlength=23";

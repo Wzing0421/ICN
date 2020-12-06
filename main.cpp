@@ -1,5 +1,6 @@
 #include "InterestProc.h"
 #include "DataProc.h"
+#include "InquireProc.h"
 
 #include <pthread.h>
 #include <iostream>
@@ -116,12 +117,17 @@ void *processingDataPackage(void*){
     dataProc.procDataPackage();
 }
 
+void *processingInquirePackage(void*){
+    InquireProc inquireProc;
+    inquireProc.procInquire();
+}
+
 int main(){
     //CSUnitTest();
     //PITUnitTest();
     //FIBUnitTest();
     
-    pthread_t thid_Interest, thid_Data;
+    pthread_t thid_Interest, thid_Data, thid_Inquire;
     if(pthread_create(&thid_Interest, NULL, processingInterestPackage, NULL) != 0){
         cout << "processingInterestPackage thread create error" << endl;
         return -1;
@@ -130,7 +136,12 @@ int main(){
         cout << "processingDataPackage thread create error" << endl;
         return -1;
     }
+    if(pthread_create(&thid_Inquire, NULL, processingInquirePackage, NULL) != 0){
+        cout << "processingInquirePackage thread create error" << endl;
+        return -1;
+    }
     pthread_join(thid_Interest, NULL);
     pthread_join(thid_Data, NULL);
+    pthread_join(thid_Inquire, NULL);
     return 0;
 }

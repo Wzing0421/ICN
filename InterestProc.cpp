@@ -77,7 +77,7 @@ void InterestProc::procInterestPackage(){
             if(isNameExistInPIT(name)){
                 // 这里面port写sport_或者dataPort都行，因为数据转发固定是DataPort不会看存入这个PIT的port是什么
                 this->insertIpAndPortByContentName(name, srcip_, sport_);
-                cout << "[1]Insert Into PIT: " << name << " IP: " << srcip_ << " Port: " << sport_ << endl;
+                cout << "[1]Insert Into PIT: " << name << " IP: " << srcip_ << endl;
             }
             /**
              * PIT表中没有，需要查找本级节点有无
@@ -87,7 +87,7 @@ void InterestProc::procInterestPackage(){
 
                 //向PIT表中插入这条转发信息
                 insertIpAndPortByContentName(name, srcip_, sport_);
-                cout << "[2]Insert Into PIT: " << name << " IP: " << srcip_ << " Port: " << sport_ << endl;
+                cout << "[2]Insert Into PIT: " << name << " IP: " << srcip_ << endl;
                 
                 vector<string> forwardingFaceList = getForwardingFaces(name);
                 
@@ -97,13 +97,13 @@ void InterestProc::procInterestPackage(){
                 //如果能在同级别找到，则将Interest包转发到同级别IP上
                 if(!IPForForwarding.empty()){
                     udpInterestSocket.sendbuf(recvInterestBuf, 100, IPForForwarding, InterestPort);
-                    cout << "[3]Forwarding Interest Package to same level: " << name << " IP: " << srcip_ << " Port: " << sport_ << endl;
+                    cout << "[3]Forwarding Interest Package to same level: " << name << " IP: " << IPForForwarding << " Port: " << InterestPort << endl;
                 }
                 //否则转发到默认的上级ICN节点上
                 else{
                     string upperIP = getUpperLevelIP();
                     udpInterestSocket.sendbuf(recvInterestBuf, 100, upperIP, InterestPort);
-                    cout << "[3]Forwarding Interest Package to upper level: " << name << " IP: " << srcip_ << " Port: " << sport_ << endl;
+                    cout << "[3]Forwarding Interest Package to upper level: " << name << " IP: " << upperIP << " Port: " << InterestPort << endl;
                 }
             }
         }
@@ -150,19 +150,28 @@ string InterestProc::getThisLevelIPIfContentExist(vector<string> &forwardingFace
     char sendbuffer[100];
     char recvbuffer[1470];
     
-    memcpy(sendbuffer, &interestpack, sizeof(sendbuffer));
+    //將InterestPackage轉換成InquirePackage
+    InquirePackage inquirepack(interestpack.contentName, 1, 0);
+    memcpy(sendbuffer, &inquirepack, sizeof(inquirepack));
     for(int i = 0; i < forwardingFaceList.size(); i++){
         FD_ZERO(&readfds);
         FD_SET(inquireSocket.sock, &readfds);
         tv.tv_sec = tv_sec;
         tv.tv_usec = tv_usec;
         
-        udpInterestSocket.sendbuf(sendbuffer, sizeof(sendbuffer), forwardingFaceList[i], InquirePort);
+        inquireSocket.sendbuf(sendbuffer, sizeof(sendbuffer), forwardingFaceList[i], InquirePort);
         select(inquireSocket.sock + 1, &readfds, NULL, NULL, &tv);
         if(FD_ISSET(inquireSocket.sock, &readfds)){
             if((lenrecv = inquireSocket.recvbuf(recvbuffer, sizeof(recvbuffer), srcip_, sport_)) >= 0){
-                //显然应该是有才行，而这里的逻辑是只要接收到就行．这是为了测试方便
-                return srcip_;
+                InquirePackage inquirepack1;
+                memcpy(&inquirepack1, recvbuffer, sizeof(InquirePackage));
+                
+                //return srcip_ if there exists content data
+                if(inquirepack1.inquire == 0 && inquirepack1.answer == 1){
+                    cout << "[Info]: Inquirement get response from " << srcip_ << " Content Name is " << inquirepack1.contentName << endl;
+                    return srcip_;
+                }
+                
             }
         }
         else{

@@ -2,7 +2,7 @@
 
 EXE = ICNNode
 
-LIBS = pthread jsoncpp_static
+LIBS = pthread jsoncpp
 LIBS_SEARCH_PATH =.
 INCLUDES =
 

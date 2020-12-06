@@ -43,18 +43,20 @@ void InquireProc::procInquire(){
         //只接收询问包
         if(inquirepack.inquire != 1) continue;
         string name = inquirepack.contentName;
- 
+        cout << "[Info]: Get Inquire Pacakge From " << srcip_ << " , Inquire Content name is " << inquirepack.contentName << endl; 
         if(isContentStoreDataExist(name)){
             InquirePackage answerpack(name.c_str(), 0, 1);
             char sendbuffer[100];
             memcpy(sendbuffer, &answerpack, sizeof(sendbuffer));
             udpInquireSocket.sendbuf(sendbuffer, sizeof(sendbuffer), srcip_, sport_);
+            cout << "[Info]: Inquire Content find, name is: " << inquirepack.contentName << endl;
         }
         else{
             InquirePackage answerpack(name.c_str(), 0, 0);
             char sendbuffer[100];
             memcpy(sendbuffer, &answerpack, sizeof(sendbuffer));
             udpInquireSocket.sendbuf(sendbuffer, sizeof(sendbuffer), srcip_, sport_);
+            cout << "[Info]: Inquire Content NOT find, name is: " << inquirepack.contentName << endl;
         }
     }
     udpInquireSocket.Close();
