@@ -27,6 +27,8 @@ CSLRU::CSLRU(int _size){
     putContentNameAndDataAndLengthNoLock(package3);
     putContentNameAndDataAndLengthNoLock(package4);
     putContentNameAndDataAndLengthNoLock(package5);
+
+    pitInstance = PIT::GetInstance();
 }
 
 CSLRU::~CSLRU(){
@@ -101,6 +103,9 @@ void CSLRU::putContentNameAndDataAndLength(DataPackage datapack){
         lru.pop_back();
         //3)释放delName对应的迭代器
         Name2Itermap.erase(delName);
+        //4)删除PIT表中这一项等待的所有源端
+        deleteContentDataInPIT(delName);
+
     }
     //插入新的DataPackage
     // 1)先更新lru的顺序
@@ -302,4 +307,8 @@ string CSLRU::getUpperName(string name){
         return upperName;
     }
     return name.substr(0, position - 1);
+}
+
+void CSLRU::deleteContentDataInPIT(string name){
+    pitInstance->deleteContentName(name);
 }

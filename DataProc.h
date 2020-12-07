@@ -45,8 +45,6 @@ private:
 
     vector<pair<string, unsigned short>> getPendingFaceInPIT(string name);
 
-    void deletePendingFaceInPIT(string name);
-
     bool IsDataPackageInContentStore(DataPackage datapack);
 
     void printInfo(DataPackage datapack);

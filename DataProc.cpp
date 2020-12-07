@@ -65,8 +65,6 @@ void DataProc::procDataPackage(){
                     udpDataSocket.sendbuf(recvDataBuf, sizeof(recvDataBuf), pendingFaceVec[i].first, DataPort);
                     cout << "[Info] Forwarding data package to: dstip " << pendingFaceVec[i].first << " ContentName: " << name << endl;
                 }
-                //删除PIT中的表项. 这里面有问题，/segment粒度的包收到之后要删除文件粒度的pit这是不可接受的
-                deletePendingFaceInPIT(name);
             }
         }
         // 在content Store中找到，说明之前本地缓存有，已经还给了源端，直接丢弃即可
@@ -83,10 +81,6 @@ void DataProc::insertDataInContentStore(DataPackage datapack){
 
 vector<pair<string, unsigned short>> DataProc::getPendingFaceInPIT(string name){
     return pitInstance->getPendingFace(name);
-}
-
-void DataProc::deletePendingFaceInPIT(string name){
-    return pitInstance->deleteContentName(name);
 }
 
 bool DataProc::IsDataPackageInContentStore(DataPackage datapack){

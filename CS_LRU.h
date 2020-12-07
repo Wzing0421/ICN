@@ -12,6 +12,7 @@
 #include <iostream>
 
 #include "package.h"
+#include "PIT.h"
 using namespace std;
 /**
  * 对CS表的设计如下：
@@ -42,6 +43,9 @@ private:
      * lru的单位是文件名，不是包．比如　pku/eecs/file/test1.txt
      */
     list<string> lru;
+
+    // PIT 表
+    PIT* pitInstance;
 
     //根据名字ContentName找到对应的char*迭代器
     map<string, list<string>::iterator> Name2Itermap;
@@ -90,6 +94,8 @@ private:
      * 这里contentName是文件粒度的
      */
     bool IsContentNameInContentStoreByUpperName(string name);
+
+    void deleteContentDataInPIT(string name);
 
 public:
 
