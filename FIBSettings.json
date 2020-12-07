@@ -14,18 +14,5 @@
         {"name": "ICN_GEO_1", "IP": "162.105.85.63"},
         {"name": "ICN_GEO_2", "IP": "162.105.85.235"},
         {"name": "ICN_GEO_3", "IP": "162.105.85.247"}
-    ],
-    "Location" : "pku/eecs/ICN_EGS_1/ICN_GEO_1",
-    "LocalContent" : [
-        "pku/eecs/ICN_EGS_1/ICN_GEO_1/file",
-        "pku/eecs/ICN_EGS_1/ICN_GEO_1/video",
-        "pku/eecs/ICN_EGS_1/ICN_GEO_1/msg"
-    ],
-    "forwardingTable" :[
-        {"LocationName": "pku/eecs/ICN_EGS_1/ICN_GEO_1", "IP": "162.105.85.63", "port": 51001},
-        {"LocationName": "pku/eecs/ICN_EGS_1/ICN_GEO_2", "IP": "162.105.85.235", "port": 51001},
-        {"LocationName": "pku/eecs/ICN_EGS_1/ICN_GEO_3", "IP": "162.105.85.247", "port": 51001},
-        {"LocationName": "pku/eecs/ICN_EGS_1", "IP": "162.105.85.110", "port": 51001},
-        {"LocationName": "pku/eecs/ICN_EGS_2", "IP": "162.105.85.188", "port": 51001}
     ]
 }
