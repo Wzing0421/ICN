@@ -40,31 +40,48 @@ vector<pair<string, unsigned short>> PIT::getPendingFace(string name){
     std::lock_guard<mutex> PITLock(pitmtx);
     /**
      * 有此情况下会用到这个函数：收到Data包之后，会查找PIT表来获得应该转发的端口．　Data包都是以segment包粒度进行传输的
-     * 正常情况下，Interest会发送UpperName也就是文件粒度的ContentName, 而Data包则以segmentName为粒度进行传输
-     * 先考虑正常情况,也就是Interest包以文件粒度进行传输，Data包以segmentName为粒度进行传输
+     * 有两种情况：第一种Interest请求是以文件粒度来发送的，另一种是以segment包粒度发送的
+     * 需要把这两种情况所有等待转发的接口一起获得
+     * 值得一提的是，ContentName2IPPort 里面包含的segment包粒度的包，当数据来之后，转发回源端口之后应该删除;而文件粒度则不用
      */
     vector<pair<string, unsigned short>> ret;
-    
+    unordered_set<pair<string, unsigned>, pair_hash> ret_set;
     //因为只有接收到DataPackage之后会用到这个函数，所以一定都是都是包粒度的
     string upperName = getUpperName(name);
     if(upperName.empty()){
         cout << "[Error] Invalid Content Name In Data Package, name is: " << name << endl;
         return ret;
     }
-    //在map中查找 pku/eecs/file/test1.txt之类的包
+    // 1. 在map中查找 pku/eecs/file/test1.txt之类的包
     auto it = ContentName2IPPort.find(upperName);
     //直接找到了，说明是类似pku/eecs/video/testfile.txt/segment1这种
-    if(it != ContentName2IPPort.end()){
+    if(it != ContentName2IPPort.end()){    
         auto IPPortSet = it->second;
         for(auto itpair = IPPortSet.begin(); itpair != IPPortSet.end(); itpair++){
-            ret.push_back(*itpair);
+            ret_set.insert(*itpair);
         }
-        return ret;
     }
-    else{
-        //没找到
+    // 2. 还有一种情况，是InterestPackage里面发送的是segment粒度的请求，这些也会在ContentName2IPPort中存储,也需要发送至源端
+    it = ContentName2IPPort.find(name);
+    if(it != ContentName2IPPort.end()){    
+        auto IPPortSet = it->second;
+        for(auto itpair = IPPortSet.begin(); itpair != IPPortSet.end(); itpair++){
+            ret_set.insert(*itpair);
+        }
+        ContentName2IPPort.erase(name);
+    }
+    
+    // 3. 还原成vector
+    if(ret_set.size() > 0){
+        for(auto iterpair = ret_set.begin(); iterpair != ret_set.end(); iterpair++){
+            ret.push_back(*iterpair);
+        }
+    }
+    
+    if(ret.size() == 0){
         cout << "[Info] No Content Name in ContentName2IPPort, name is: " << name << endl;
     }
+
     return ret;
 }
 
