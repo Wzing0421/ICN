@@ -70,9 +70,7 @@ struct DataPackage{
 
     //当Interest到来本地发现存在内容的时候，需要排序之后按照顺序发送回Interest请求源端
     bool operator < (const DataPackage rhs) const{
-        string contentstr1 = this->contentName;
-        string contentstr2 = rhs.contentName;
-        return contentstr1 < contentstr2;
+        return segmentNum < rhs.segmentNum;
     }
 };
 

@@ -68,7 +68,8 @@ void InterestProc::procInterestPackage(){
                 char sendbuffer[1470];
                 memcpy(sendbuffer, &ContentDataVec[i], sizeof(sendbuffer));
                 udpInterestSocket.sendbuf(sendbuffer, sizeof(sendbuffer), srcip_, DataPort);
-                cout << "[info] send data to " << srcip_ << ":" << DataPort << " ContentName: " << ContentDataVec[i].contentName << " Data: " << ContentDataVec[i].data <<endl;
+                cout << "[info] send data to " << srcip_ << ":" << DataPort << " ContentName: " << ContentDataVec[i].contentName << " SegmentNum: " << ContentDataVec[i].segmentNum << " End: " << ContentDataVec[i].end << endl;
+                usleep(10000);
             }
         }
         //在content Store中没有找到

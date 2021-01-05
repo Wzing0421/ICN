@@ -2,6 +2,7 @@
 CSLRU::CSLRU(int _size){
     this->size = _size;
     /*我在这里加上一些测试语句方便测试，之后删除11月19日*/
+    /*
     string str1 = "pku/eecs/file/test1.txt/segment1";
     char *strcontent1 = "teststrlength=16";
     DataPackage package1(str1.c_str(), strcontent1, strlen(strcontent1), 1, 0);
@@ -27,6 +28,7 @@ CSLRU::CSLRU(int _size){
     putContentNameAndDataAndLengthNoLock(package3);
     putContentNameAndDataAndLengthNoLock(package4);
     putContentNameAndDataAndLengthNoLock(package5);
+    */
 
     pitInstance = PIT::GetInstance();
 }

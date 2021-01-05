@@ -1,7 +1,7 @@
 {
     "commentLocal" : "FIB表表示Interest的转发原则．设定Interest转发端口是51001, data包转发端口是51002",
     "NameComment": "唯一标识这个ICN节点的名称，之后还可以确定此节点在整个ICN网络中的位置",
-    "Name": "ICN_GEO_1",
+    "Name": "ICN_GEO_3",
     "layerComment":"layer0表示源客户端; layer1表示第一级也就是地面网络的ICN，layer2表示第二级也就是GEO级别的ICN. 不同级别的ICN的同级询问的方式不一样．初步决定layer1全部轮询，而layer2只查询左右两颗星",
     "layer0": [
         {"name": "Source1", "IP": "162.105.85.184"}

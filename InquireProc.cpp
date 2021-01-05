@@ -56,6 +56,7 @@ void InquireProc::procInquire(){
             char sendbuffer[100];
             memcpy(sendbuffer, &answerpack, sizeof(sendbuffer));
             udpInquireSocket.sendbuf(sendbuffer, sizeof(sendbuffer), srcip_, sport_);
+            usleep(10000);
             cout << "[Info]: Inquire Content NOT find, name is: " << inquirepack.contentName << endl;
         }
     }

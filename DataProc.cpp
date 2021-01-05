@@ -55,7 +55,7 @@ void DataProc::procDataPackage(){
         // Content Store中没有这个DataPackage才可以进行下面的操作
         if(!IsDataPackageInContentStore(dataPackage)){
 
-            cout << "[Info]: No DataPackage in Content Store! Package Name: " << dataPackage.contentName << endl;
+            cout << "[Info]: No DataPackage in Content Store! Package Name: " << dataPackage.contentName << " SegmentNum: " << dataPackage.segmentNum << " End: " << dataPackage.end << endl;
             vector<pair<string, unsigned short>> pendingFaceVec = getPendingFaceInPIT(name);
             if(pendingFaceVec.size() > 0){
                 //先将 DataPackage 存入 Content Store
