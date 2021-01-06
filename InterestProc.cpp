@@ -77,7 +77,7 @@ void InterestProc::procInterestPackage(){
             //首先在PIT表中找这个ContentName是不是已经在等待了,如果找到了则更新PIT表并丢弃Interest包
             if(isNameExistInPIT(name)){
                 // 这里面port写sport_或者dataPort都行，因为数据转发固定是DataPort不会看存入这个PIT的port是什么
-                this->insertIpAndPortByContentName(name, srcip_, sport_);
+                Subscribe(name, srcip_, sport_);
                 cout << "[1]Insert Into PIT: " << name << " IP: " << srcip_ << endl;
             }
             /**
@@ -87,7 +87,7 @@ void InterestProc::procInterestPackage(){
             else{
 
                 //向PIT表中插入这条转发信息
-                insertIpAndPortByContentName(name, srcip_, sport_);
+                Subscribe(name, srcip_, sport_);
                 cout << "[2]Insert Into PIT: " << name << " IP: " << srcip_ << endl;
                 
                 vector<string> forwardingFaceList = getForwardingFaces(name);
@@ -120,7 +120,8 @@ bool InterestProc::isNameExistInPIT(string name){
     return pitInstance->isContentNamePending(name);
 }
 
-void InterestProc::insertIpAndPortByContentName(string name, string IP, unsigned short port){
+// The key method for subsribing 
+void InterestProc::Subscribe(string name, string IP, unsigned short port){
     return pitInstance->insertIpAndPortByContentName(name, IP, port);
 }
 

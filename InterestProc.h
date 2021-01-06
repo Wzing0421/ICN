@@ -67,7 +67,8 @@ private:
 
     bool isNameExistInPIT(string name);
 
-    void insertIpAndPortByContentName(string name, string IP, unsigned short port);
+    //insertIpAndPortByContentName
+    void Subscribe(string name, string IP, unsigned short port);
 
     /**
      * 查询这个Interest请求的name是不是归属于本地
