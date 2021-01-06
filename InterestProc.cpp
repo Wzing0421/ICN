@@ -65,7 +65,7 @@ void InterestProc::procInterestPackage(){
         if(ContentDataVec.size() != 0){
             cout << "[Info]: Find Package in Content Store!" << endl;
             for(int i = 0; i < ContentDataVec.size(); i++){
-                char sendbuffer[1470];
+                char sendbuffer[1500];
                 memcpy(sendbuffer, &ContentDataVec[i], sizeof(sendbuffer));
                 udpInterestSocket.sendbuf(sendbuffer, sizeof(sendbuffer), srcip_, DataPort);
                 cout << "[info] send data to " << srcip_ << ":" << DataPort << " ContentName: " << ContentDataVec[i].contentName << " SegmentNum: " << ContentDataVec[i].segmentNum << " End: " << ContentDataVec[i].end << endl;
@@ -149,7 +149,7 @@ string InterestProc::getThisLevelIPIfContentExist(vector<string> &forwardingFace
     string srcip_;
     unsigned short sport_;
     char sendbuffer[100];
-    char recvbuffer[1470];
+    char recvbuffer[1500];
     
     //將InterestPackage轉換成InquirePackage
     InquirePackage inquirepack(interestpack.contentName, 1, 0);
