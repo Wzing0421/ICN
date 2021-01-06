@@ -120,9 +120,14 @@ bool InterestProc::isNameExistInPIT(string name){
     return pitInstance->isContentNamePending(name);
 }
 
-// The key method for subsribing 
+// The key method for subscribing 
 void InterestProc::Subscribe(string name, string IP, unsigned short port){
     return pitInstance->insertIpAndPortByContentName(name, IP, port);
+}
+
+// The key method for unsubscribing
+void InterestProc::UnSubscribe(string name, string IP, unsigned short port){
+    return pitInstance->deleteIpAndPortByContentName(name, IP, port);
 }
 
 bool InterestProc::isMatchLocalNames(string name){

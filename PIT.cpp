@@ -35,6 +35,14 @@ void PIT::insertIpAndPortByContentName(string name, string IP, unsigned short po
     }
 }
 
+void PIT::deleteIpAndPortByContentName(string name, string IP, unsigned short port){
+    std::lock_guard<mutex> DelPITLock(pitmtx);
+    auto it = ContentName2IPPort.find(name);
+    if(it != ContentName2IPPort.end()){
+        it->second.erase(make_pair(IP, port));
+    }
+}
+
 vector<pair<string, unsigned short>> PIT::getPendingFace(string name){
     
     std::lock_guard<mutex> PITLock(pitmtx);

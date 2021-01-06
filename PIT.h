@@ -53,10 +53,14 @@ public:
     static PIT* GetInstance();
 
     /**
-     * 将ContentName对应的源端IP和port记录在map里面
+     * 将ContentName对应的源端IP和port记录在map里面, 也就是对应＂订阅＂操作
      */
     void insertIpAndPortByContentName(string name, string IP, unsigned short port);
 
+    /**
+     * 将map中ContentName对应的信息删除，也就是对应的＂取消订阅＂操作
+     */
+    void deleteIpAndPortByContentName(string name, string IP, unsigned short port);
 
     /**
      * 根据一个ContentName获得所有的源端请求的IP + port

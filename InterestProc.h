@@ -70,6 +70,8 @@ private:
     //insertIpAndPortByContentName
     void Subscribe(string name, string IP, unsigned short port);
 
+    void UnSubscribe(string name, string IP, unsigned short port);
+
     /**
      * 查询这个Interest请求的name是不是归属于本地
      */
