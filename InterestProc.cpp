@@ -58,55 +58,63 @@ void InterestProc::procInterestPackage(){
         InterestPackage interestPackage;
         memcpy(&interestPackage, recvInterestBuf, sizeof(interestPackage));
         string name = interestPackage.contentName;
-        
-        vector<DataPackage> ContentDataVec = getContentStoreDataList(name);
+        int subscribe = interestPackage.Subscribe;
 
-        // 找到了所需要的包
-        if(ContentDataVec.size() != 0){
-            cout << "[Info]: Find Package in Content Store!" << endl;
-            for(int i = 0; i < ContentDataVec.size(); i++){
-                char sendbuffer[1500];
-                memcpy(sendbuffer, &ContentDataVec[i], sizeof(sendbuffer));
-                udpInterestSocket.sendbuf(sendbuffer, sizeof(sendbuffer), srcip_, DataPort);
-                cout << "[info] send data to " << srcip_ << ":" << DataPort << " ContentName: " << ContentDataVec[i].contentName << " SegmentNum: " << ContentDataVec[i].segmentNum << " End: " << ContentDataVec[i].end << endl;
-                usleep(10000);
+        if(subscribe == 1){
+            //订阅操作
+            vector<DataPackage> ContentDataVec = getContentStoreDataList(name);
+
+            // 找到了所需要的包
+            if(ContentDataVec.size() != 0){
+                cout << "[Info]: Find Package in Content Store!" << endl;
+                for(int i = 0; i < ContentDataVec.size(); i++){
+                    char sendbuffer[1500];
+                    memcpy(sendbuffer, &ContentDataVec[i], sizeof(sendbuffer));
+                    udpInterestSocket.sendbuf(sendbuffer, sizeof(sendbuffer), srcip_, DataPort);
+                    cout << "[info] send data to " << srcip_ << ":" << DataPort << " ContentName: " << ContentDataVec[i].contentName << " SegmentNum: " << ContentDataVec[i].segmentNum << " End: " << ContentDataVec[i].end << endl;
+                    usleep(10000);
+                }
+            }
+            //在content Store中没有找到
+            else{
+                //首先在PIT表中找这个ContentName是不是已经在等待了,如果找到了则更新PIT表并丢弃Interest包
+                if(isNameExistInPIT(name)){
+                    // 这里面port写sport_或者dataPort都行，因为数据转发固定是DataPort不会看存入这个PIT的port是什么
+                    Subscribe(name, srcip_, sport_);
+                    cout << "[1]Insert Into PIT: " << name << " IP: " << srcip_ << endl;
+                }
+                /**
+                * PIT表中没有，需要查找本级节点有无
+                * 有则转发至本级节点，无则转发至上级默认ICN节点
+                */
+                else{
+
+                    //向PIT表中插入这条转发信息
+                    Subscribe(name, srcip_, sport_);
+                    cout << "[2]Insert Into PIT: " << name << " IP: " << srcip_ << endl;
+                
+                    vector<string> forwardingFaceList = getForwardingFaces(name);
+                
+                    //先向本级查询，如果没有结果，则向上级查询
+                    string IPForForwarding = getThisLevelIPIfContentExist(forwardingFaceList, interestPackage);
+                
+                    //如果能在同级别找到，则将Interest包转发到同级别IP上
+                    if(!IPForForwarding.empty()){
+                        udpInterestSocket.sendbuf(recvInterestBuf, 100, IPForForwarding, InterestPort);
+                        cout << "[3]Forwarding Interest Package to same level: " << name << " IP: " << IPForForwarding << " Port: " << InterestPort << endl;
+                    }
+                    //否则转发到默认的上级ICN节点上
+                    else{
+                        string upperIP = getUpperLevelIP();
+                        udpInterestSocket.sendbuf(recvInterestBuf, 100, upperIP, InterestPort);
+                        cout << "[3]Forwarding Interest Package to upper level: " << name << " IP: " << upperIP << " Port: " << InterestPort << endl;
+                    }
+                }
             }
         }
-        //在content Store中没有找到
         else{
-            //首先在PIT表中找这个ContentName是不是已经在等待了,如果找到了则更新PIT表并丢弃Interest包
-            if(isNameExistInPIT(name)){
-                // 这里面port写sport_或者dataPort都行，因为数据转发固定是DataPort不会看存入这个PIT的port是什么
-                Subscribe(name, srcip_, sport_);
-                cout << "[1]Insert Into PIT: " << name << " IP: " << srcip_ << endl;
-            }
-            /**
-             * PIT表中没有，需要查找本级节点有无
-             * 有则转发至本级节点，无则转发至上级默认ICN节点
-             */
-            else{
-
-                //向PIT表中插入这条转发信息
-                Subscribe(name, srcip_, sport_);
-                cout << "[2]Insert Into PIT: " << name << " IP: " << srcip_ << endl;
-                
-                vector<string> forwardingFaceList = getForwardingFaces(name);
-                
-                //先向本级查询，如果没有结果，则向上级查询
-                string IPForForwarding = getThisLevelIPIfContentExist(forwardingFaceList, interestPackage);
-                
-                //如果能在同级别找到，则将Interest包转发到同级别IP上
-                if(!IPForForwarding.empty()){
-                    udpInterestSocket.sendbuf(recvInterestBuf, 100, IPForForwarding, InterestPort);
-                    cout << "[3]Forwarding Interest Package to same level: " << name << " IP: " << IPForForwarding << " Port: " << InterestPort << endl;
-                }
-                //否则转发到默认的上级ICN节点上
-                else{
-                    string upperIP = getUpperLevelIP();
-                    udpInterestSocket.sendbuf(recvInterestBuf, 100, upperIP, InterestPort);
-                    cout << "[3]Forwarding Interest Package to upper level: " << name << " IP: " << upperIP << " Port: " << InterestPort << endl;
-                }
-            }
+            //取消订阅操作
+            UnSubscribe(name, srcip_, sport_);
         }
     }
     udpInterestSocket.Close();

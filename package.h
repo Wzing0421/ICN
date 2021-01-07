@@ -20,9 +20,17 @@ struct InterestPackage{
      * 请求内容名字
      */
     char contentName[50];
+
+    /**
+     * 种类: 订阅/取消订阅
+     * 订阅 = 1
+     * 取消订阅 = 0
+     */
+    int Subscribe;
     
-    InterestPackage(const char* _contentName){
+    InterestPackage(const char* _contentName, int _Subscribe){
         strcpy(contentName, _contentName);
+        Subscribe = _Subscribe;
     }
     InterestPackage(){}
 };
