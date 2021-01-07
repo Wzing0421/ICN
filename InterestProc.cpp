@@ -113,8 +113,12 @@ void InterestProc::procInterestPackage(){
             }
         }
         else{
+            cout << "Before Unsubscribe:" << endl;
+            pitInstance->printPIT();
             //取消订阅操作
             UnSubscribe(name, srcip_, sport_);
+            cout << "After Unsubscribe:" << endl;
+            pitInstance->printPIT();
         }
     }
     udpInterestSocket.Close();

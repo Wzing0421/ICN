@@ -40,6 +40,10 @@ void PIT::deleteIpAndPortByContentName(string name, string IP, unsigned short po
     auto it = ContentName2IPPort.find(name);
     if(it != ContentName2IPPort.end()){
         it->second.erase(make_pair(IP, port));
+
+        if(it->second.size() == 0){
+            ContentName2IPPort.erase(it);
+        }
     }
 }
 
