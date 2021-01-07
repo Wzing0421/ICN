@@ -56,10 +56,17 @@ void DataProc::procDataPackage(){
         if(!IsDataPackageInContentStore(dataPackage)){
 
             cout << "[Info]: No DataPackage in Content Store! Package Name: " << dataPackage.contentName << " SegmentNum: " << dataPackage.segmentNum << " End: " << dataPackage.end << endl;
+            
+            /**
+             * 先将 DataPackage 存入 Content Store 不论PIT中有没有数据都先存放
+             * 这里涉及到发布的逻辑: 
+             * 即使发布的时候没有订阅者也应该在本地缓存以供后续订阅者订阅
+             */
+            insertDataInContentStore(dataPackage);
+            
             vector<pair<string, unsigned short>> pendingFaceVec = getPendingFaceInPIT(name);
             if(pendingFaceVec.size() > 0){
-                //先将 DataPackage 存入 Content Store
-                insertDataInContentStore(dataPackage);
+                
                 //然后向源端口转发
                 for(int i = 0; i < pendingFaceVec.size(); i++){
                     udpDataSocket.sendbuf(recvDataBuf, sizeof(recvDataBuf), pendingFaceVec[i].first, DataPort);
