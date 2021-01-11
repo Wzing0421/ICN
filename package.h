@@ -22,15 +22,24 @@ struct InterestPackage{
     char contentName[50];
 
     /**
+     * 种类
+     * 文件=0
+     * 视频流=1
+     * 短消息=2
+     */
+    int type;
+
+    /**
      * 种类: 订阅/取消订阅
      * 订阅 = 1
      * 取消订阅 = 0
      */
     int Subscribe;
     
-    InterestPackage(const char* _contentName, int _Subscribe){
+    InterestPackage(const char* _contentName, int _Subscribe, int _type){
         strcpy(contentName, _contentName);
         Subscribe = _Subscribe;
+        type = _type;
     }
     InterestPackage(){}
 };
@@ -114,6 +123,34 @@ struct InquirePackage{
         answer = _answer;
     }
     InquirePackage(){}
+};
+
+/**
+ * VideoPackage是传送视频的包
+ * 和文件的包相比其不需要segmentNum顺序和end判断结束
+ */
+struct VideoPackage{
+    /**
+     * 内容名字
+     */
+    char contentName[50];
+    
+    /**
+     * 具体数据
+     */
+    char data[65000];
+    
+    /**
+     * 数据长度
+     */
+    int datasize;
+
+    VideoPackage(const char* _contentName, const char* _data, int _size){
+        strcpy(contentName, _contentName);
+        strcpy(data, _data);
+        datasize = _size;
+    }
+    VideoPackage(){}
 };
 
 #endif

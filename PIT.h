@@ -71,6 +71,7 @@ public:
      */
     vector<pair<string, unsigned short>> getPendingFace(string name); 
 
+    vector<pair<string, unsigned short>> getVideoPendingFace(string name);
 
     /**
      * 查看当前的内容ContentName是否已经有别人在等待了

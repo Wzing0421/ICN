@@ -77,6 +77,7 @@ private:
      */
     bool isMatchLocalNames(string name);
 
+    bool isVideoStream(string name);
     /**
      * 这个请求不属于本地的情况下，获得这个name应该转发的所有接口
      */

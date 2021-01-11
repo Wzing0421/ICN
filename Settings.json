@@ -4,6 +4,7 @@
     "DataPort": 51002,
     "InquirePort": 51003,
     "InquireBindPort" : 51004,
+    "VideoPort" : 51005,
     "tv_sec" : 1,
     "tv_usec" : 0
 }

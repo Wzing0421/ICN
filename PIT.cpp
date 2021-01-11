@@ -97,6 +97,25 @@ vector<pair<string, unsigned short>> PIT::getPendingFace(string name){
     return ret;
 }
 
+/**
+ * 这里需要注意的一点是：这个name直接是pku/eecs/file/test.mp3 而没有segment. 
+ * 这是因为作为视频流，传输效率第一，并不关心包传输的顺序
+ * 所以只要是这一个流下的包直接转发即可
+ */
+vector<pair<string, unsigned short>> PIT::getVideoPendingFace(string name){
+    std::lock_guard<mutex> PITVideoLock(pitmtx);
+    vector<pair<string, unsigned short>> ret;
+
+    auto it = ContentName2IPPort.find(name);
+    if(it != ContentName2IPPort.end()){    
+        auto IPPortSet = it->second;
+        for(auto itpair = IPPortSet.begin(); itpair != IPPortSet.end(); itpair++){
+            ret.push_back(*itpair);
+        }
+    }
+    return ret;
+}
+
 bool PIT::isContentNamePending(string name){
 
     std::lock_guard<mutex> GetContentPITLock(pitmtx);
