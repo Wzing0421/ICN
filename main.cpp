@@ -2,6 +2,7 @@
 #include "DataProc.h"
 #include "InquireProc.h"
 #include "VideoProc.h"
+#include "MsgProc.h"
 
 #include <pthread.h>
 #include <iostream>
@@ -128,12 +129,17 @@ void *processingVideoPackage(void*){
     videoProc.procVideoPackage();
 }
 
+void *processingMsgPackage(void*){
+    MsgProc msgProc;
+    msgProc.procMsgPackage();
+}
+
 int main(){
     //CSUnitTest();
     //PITUnitTest();
     //FIBUnitTest();
     
-    pthread_t thid_Interest, thid_Data, thid_Inquire, thid_Video;
+    pthread_t thid_Interest, thid_Data, thid_Inquire, thid_Video, thid_Msg;
     if(pthread_create(&thid_Interest, NULL, processingInterestPackage, NULL) != 0){
         cout << "processingInterestPackage thread create error" << endl;
         return -1;
@@ -150,9 +156,14 @@ int main(){
         cout << "processingVideoPackage thread create error" << endl;
         return -1;
     }
+    if(pthread_create(&thid_Msg, NULL, processingMsgPackage, NULL) != 0){
+        cout << "processingMsgPackage thread create error" << endl;
+        return -1;
+    }
     pthread_join(thid_Interest, NULL);
     pthread_join(thid_Data, NULL);
     pthread_join(thid_Inquire, NULL);
     pthread_join(thid_Video, NULL);
+    pthread_join(thid_Msg, NULL);
     return 0;
 }

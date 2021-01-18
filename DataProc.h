@@ -45,7 +45,17 @@ private:
 
     vector<pair<string, unsigned short>> getPendingFaceInPIT(string name);
 
+    vector<pair<string, unsigned short>> getMsgPendingFaceInPIT(string name);
+
     bool IsDataPackageInContentStore(DataPackage datapack);
+
+    bool judgeFile(string name);
+
+    bool judgeVideo(string name);
+
+    bool judgeMsg(string name);
+
+    string getUpperName(string name);
 
     void printInfo(DataPackage datapack);
 

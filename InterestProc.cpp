@@ -124,7 +124,16 @@ void InterestProc::procInterestPackage(){
                  */ 
                 //直接插入，有重复的可以去重
                 Subscribe(name, srcip_, sport_);    
-                cout << "[1]Insert Into PIT: " << name << " IP: " << srcip_ << endl;
+                cout << "[Video]Insert Into PIT: " << name << " IP: " << srcip_ << endl;
+                // 向上级ICN节点注册
+                string upperIP = getUpperLevelIP();
+                udpInterestSocket.sendbuf(recvInterestBuf, lenrecv, upperIP, InterestPort);
+            }
+            else if(type == 2){
+                // type == 2 是短消息流
+                //直接插入，有重复的可以去重
+                Subscribe(name, srcip_, sport_);    
+                cout << "[Msg]Insert Into PIT: " << name << " IP: " << srcip_ << endl;
                 // 向上级ICN节点注册
                 string upperIP = getUpperLevelIP();
                 udpInterestSocket.sendbuf(recvInterestBuf, lenrecv, upperIP, InterestPort);
@@ -136,12 +145,25 @@ void InterestProc::procInterestPackage(){
             //取消订阅操作
             UnSubscribe(name, srcip_, sport_);
 
-            vector<pair<string, unsigned short>> retvec = pitInstance->getVideoPendingFace(name);
-            // 如果本ICN节点没有了订阅节点则向上级汇报
-            if(retvec.size() == 0){
-                string upperIP = getUpperLevelIP();
-                udpInterestSocket.sendbuf(recvInterestBuf, 100, upperIP, InterestPort);
+            if(type == 1){
+                // video unSubscribe
+                vector<pair<string, unsigned short>> retvec = pitInstance->getVideoPendingFace(name);
+                // 如果本ICN节点没有了订阅节点则向上级汇报
+                if(retvec.size() == 0){
+                    string upperIP = getUpperLevelIP();
+                    udpInterestSocket.sendbuf(recvInterestBuf, 100, upperIP, InterestPort);
+                }
             }
+            else if(type == 2){
+                // Msg unSubscribe
+                vector<pair<string, unsigned short>> retvec = pitInstance->getMsgPendingFace(name);
+                // 如果本ICN节点没有了订阅节点则向上级汇报
+                if(retvec.size() == 0){
+                    string upperIP = getUpperLevelIP();
+                    udpInterestSocket.sendbuf(recvInterestBuf, 100, upperIP, InterestPort);
+                }
+            }
+            
             cout << "After Unsubscribe:" << endl;
             pitInstance->printPIT();
         }

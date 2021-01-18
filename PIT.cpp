@@ -116,6 +116,20 @@ vector<pair<string, unsigned short>> PIT::getVideoPendingFace(string name){
     return ret;
 }
 
+vector<pair<string, unsigned short>> PIT::getMsgPendingFace(string name){
+    std::lock_guard<mutex> PITMsgLock(pitmtx);
+    vector<pair<string, unsigned short>> ret;
+
+    auto it = ContentName2IPPort.find(name);
+    if(it != ContentName2IPPort.end()){    
+        auto IPPortSet = it->second;
+        for(auto itpair = IPPortSet.begin(); itpair != IPPortSet.end(); itpair++){
+            ret.push_back(*itpair);
+        }
+    }
+    return ret;
+}
+
 bool PIT::isContentNamePending(string name){
 
     std::lock_guard<mutex> GetContentPITLock(pitmtx);
