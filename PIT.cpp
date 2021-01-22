@@ -1,7 +1,17 @@
 #include "PIT.h"
 //unordered_map<string, unordered_set<pair<string, unsigned short>>> ContentName2IPPort;
 
-PIT::PIT(){}
+PIT::PIT(){
+    // no lock! for test
+    unordered_set<std::pair <string, unsigned short>, pair_hash> IPPortSet1;
+    IPPortSet1.insert(make_pair("225.0.0.1", 51010));
+    ContentName2IPPort["pku/eecs/msg/hangzhen/aero1"] = IPPortSet1;
+    unordered_set<std::pair <string, unsigned short>, pair_hash> IPPortSet2;
+    IPPortSet2.insert(make_pair("225.0.0.2", 51011));
+    ContentName2IPPort["pku/eecs/msg/metro/place1"] = IPPortSet2;
+    printPIT();
+}
+
 PIT::~PIT(){
     if(PIT::pitInstance){
         delete PIT::pitInstance;
