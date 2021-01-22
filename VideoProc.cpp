@@ -51,7 +51,7 @@ void VideoProc::procVideoPackage(){
         memcpy(contentName, recvDataBuf, 50);
         string name = contentName;
         // 请注意这里直接根据流的名字　pku/eecs/video/test.mp3来找转发端口，不需要upperName
-        printf("Content Name is: %s, count is: lld\n", name.c_str(), count);
+        printf("Content Name is: %s, count is: %lld\n", name.c_str(), count);
         vector<pair<string, unsigned short>> pendingFaceVec = getVideoPendingFaceInPIT(name);
         
         //有则直接转发, 没有则直接丢弃

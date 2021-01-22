@@ -71,8 +71,8 @@ void DataProc::procDataPackage(){
                     
                     //然后向源端口转发
                     for(int i = 0; i < pendingFaceVec.size(); i++){
-                        udpDataSocket.sendbuf(recvDataBuf, sizeof(recvDataBuf), pendingFaceVec[i].first, DataPort);
-                        cout << "[Info] Forwarding data package to: dstip " << pendingFaceVec[i].first << " ContentName: " << name << endl;
+                        udpDataSocket.sendbuf(recvDataBuf, sizeof(recvDataBuf), pendingFaceVec[i].first, pendingFaceVec[i].second);
+                        cout << "[Info] Forwarding data package to: dstip " << pendingFaceVec[i].first << " ContentName: " << name << " Dstport: " << pendingFaceVec[i].second << endl;
                     }
                 }
             }
@@ -89,8 +89,8 @@ void DataProc::procDataPackage(){
             if(pendingFaceVec.size() > 0){        
                 //然后向源端口转发
                 for(int i = 0; i < pendingFaceVec.size(); i++){
-                    udpDataSocket.sendbuf(recvDataBuf, sizeof(recvDataBuf), pendingFaceVec[i].first, DataPort);
-                    cout << "[Info] Forwarding data package to: dstip " << pendingFaceVec[i].first << " ContentName: " << name << endl;
+                    udpDataSocket.sendbuf(recvDataBuf, sizeof(recvDataBuf), pendingFaceVec[i].first, pendingFaceVec[i].second);
+                    cout << "[Info] Forwarding data package to: dstip " << pendingFaceVec[i].first << " ContentName: " << name  << " Dstport: " << pendingFaceVec[i].second << endl;
                 }
             }
         }

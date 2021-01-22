@@ -83,9 +83,12 @@ void InterestProc::procInterestPackage(){
                 else{
                     //首先在PIT表中找这个ContentName是不是已经在等待了,如果找到了则更新PIT表并丢弃Interest包
                     if(isNameExistInPIT(name)){
-                        // 这里面port写sport_或者dataPort都行，因为数据转发固定是DataPort不会看存入这个PIT的port是什么
-                        Subscribe(name, srcip_, sport_);
-                        cout << "[1]Insert Into PIT: " << name << " IP: " << srcip_ << endl;
+                        /**1月22日更新:
+                         * 对于订阅请求，Interest请求端的端口已经固定成51001, 而由于设定接收端单独订阅的文件和短消息都是在51002端口接收,所以对于subscribe的时候直接源端口加1就可以
+                         * 而对于组播类的接收则不是51002而需要从数据库配置中心读取
+                         */
+                        Subscribe(name, srcip_, sport_ + 1);
+                        cout << "[1]Insert Into PIT: " << name << " IP: " << srcip_ << " Port: " << sport_ + 1 << endl;
                     }
                     /**
                     * PIT表中没有，需要查找本级节点有无
@@ -94,8 +97,8 @@ void InterestProc::procInterestPackage(){
                     else{
 
                         //向PIT表中插入这条转发信息
-                        Subscribe(name, srcip_, sport_);
-                        cout << "[2]Insert Into PIT: " << name << " IP: " << srcip_ << endl;
+                        Subscribe(name, srcip_, sport_ + 1);
+                        cout << "[2]Insert Into PIT: " << name << " IP: " << srcip_ << " Port: " << sport_ + 1 << endl;
 
                         vector<string> forwardingFaceList = getForwardingFaces(name);
                 
@@ -131,8 +134,8 @@ void InterestProc::procInterestPackage(){
             }
             else if(type == 2){
                 // type == 2 是短消息流
-                //直接插入，有重复的可以去重
-                Subscribe(name, srcip_, sport_);    
+                //直接插入，有重复的可以去重,注意短消息和文件订阅都是51001所以都需要+1
+                Subscribe(name, srcip_, sport_ + 1);    
                 cout << "[Msg]Insert Into PIT: " << name << " IP: " << srcip_ << endl;
                 // 向上级ICN节点注册
                 string upperIP = getUpperLevelIP();
@@ -143,7 +146,12 @@ void InterestProc::procInterestPackage(){
             cout << "Before Unsubscribe:" << endl;
             pitInstance->printPIT();
             //取消订阅操作
-            UnSubscribe(name, srcip_, sport_);
+            if(type == 1){ // video
+                UnSubscribe(name, srcip_, sport_);
+            }
+            else{
+                UnSubscribe(name, srcip_, sport_ + 1);
+            }
 
             if(type == 1){
                 // video unSubscribe
