@@ -2,13 +2,8 @@
 //unordered_map<string, unordered_set<pair<string, unsigned short>>> ContentName2IPPort;
 
 PIT::PIT(){
-    // no lock! for test
-    unordered_set<std::pair <string, unsigned short>, pair_hash> IPPortSet1;
-    IPPortSet1.insert(make_pair("225.0.0.1", 51010));
-    ContentName2IPPort["pku/eecs/msg/hangzhen/aero1"] = IPPortSet1;
-    unordered_set<std::pair <string, unsigned short>, pair_hash> IPPortSet2;
-    IPPortSet2.insert(make_pair("225.0.0.2", 51011));
-    ContentName2IPPort["pku/eecs/msg/metro/place1"] = IPPortSet2;
+    // no lock! read from etcd to get multiple cast information
+    getSettingsFromEtcd();    
     printPIT();
 }
 
@@ -30,6 +25,63 @@ PIT* PIT::GetInstance(){
         }
     }
     return pitInstance;
+}
+
+void PIT::getSettingsFromEtcd(){
+    
+    struct timeval tv;
+    fd_set readfds;
+    int lenrecv;
+    string srcip_;
+    unsigned short sport_;
+    char sendbuffer[100] = "Inquire etcd settings";
+    char recvbuffer[1500];
+    
+    UDPSocket etcdSocket;
+    // random
+    etcdSocket.create(22556);
+    FD_ZERO(&readfds);
+    FD_SET(etcdSocket.sock, &readfds);
+    tv.tv_sec = 1;
+    tv.tv_usec = 0;
+        
+    etcdSocket.sendbuf(sendbuffer, sizeof(sendbuffer), "162.105.85.63", 32555);
+    select(etcdSocket.sock + 1, &readfds, NULL, NULL, &tv);
+    if(FD_ISSET(etcdSocket.sock, &readfds)){
+        if((lenrecv = etcdSocket.recvbuf(recvbuffer, sizeof(recvbuffer), srcip_, sport_)) >= 0){
+            // parse receive string: eg: pku/eecs/msg/hangzhen/areo1:225.0.0.1:51010_pku/eecs/msg/metro/place2:225.0.0.2:51011
+            string str = recvbuffer;
+            vector<string> ret;
+            SplitString(str, ret, "_");
+            // get each item like: pku/eecs/msg/hangzhen/areo1:225.0.0.1:51010
+            for(int i = 0; i < ret.size(); i++){
+                vector<string> retitem;
+                SplitString(ret[i], retitem, ":");
+                // retitem[0] = "pku/eecs/msg/hangzhen/areo1" retitem[1] = "225.0.0.1" retitem[2] = 51010
+                unsigned short port = (unsigned short)atoi(retitem[2].c_str());
+                ContentName2IPPort[retitem[0]].insert(make_pair(retitem[1], port));
+            }
+        }
+    }
+    else{
+        cout << "[Info] Timeout from Etcd Service" << endl;
+    }
+}
+
+
+void PIT::SplitString(const std::string& s, std::vector<std::string>& v, const std::string& c){
+    std::string::size_type pos1, pos2;
+    pos2 = s.find(c);
+    pos1 = 0;
+    while(std::string::npos != pos2)
+    {
+        v.push_back(s.substr(pos1, pos2-pos1));
+ 
+        pos1 = pos2 + c.size();
+        pos2 = s.find(c, pos1);
+    }
+    if(pos1 != s.length())
+        v.push_back(s.substr(pos1));
 }
 
 void PIT::insertIpAndPortByContentName(string name, string IP, unsigned short port){
@@ -179,7 +231,7 @@ void PIT::printPIT(){
         auto IPPortSet = iter->second;
         cout << "ContentName: "<<iter->first << "  ";
         for(auto iter2 = IPPortSet.begin(); iter2 != IPPortSet.end(); iter2++){
-            cout << "  IP: " << iter2->first << "Port: " << iter2->second;
+            cout << "  IP: " << iter2->first << " Port: " << iter2->second;
         }
         cout << endl;
     }

@@ -11,6 +11,7 @@
 #include <mutex>
 
 #include "arpa/inet.h"
+#include "UDPSocket.h"
 
 using namespace std;
 
@@ -37,11 +38,15 @@ private:
      */
     unordered_map<string, unordered_set< pair<string, unsigned short>, pair_hash > > ContentName2IPPort;
 
+    void getSettingsFromEtcd();
+
     //单例模式
     PIT();
     static PIT* pitInstance;
 
     string getUpperName(string name);
+
+    void SplitString(const std::string& s, std::vector<std::string>& v, const std::string& c);
 
 public:
     
