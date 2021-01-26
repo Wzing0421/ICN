@@ -59,6 +59,14 @@ private:
 
     void printInfo(DataPackage datapack);
 
+    /**
+     * judge if the icn is the last layer;
+     * only last layer can transmit multicast pacakges
+     */
+    bool judgeLastLayer();
+
+    bool judegMulCastIP(string IP);
+
 public:
     DataProc();
     ~DataProc();

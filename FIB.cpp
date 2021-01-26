@@ -125,3 +125,7 @@ void FIB::formForwardingIPlist(int layer, Json::Value &root){
 string FIB::getUpperLevelForwardingIP(){
     return FIBstructure[layer - 1][0].second;   
 }
+
+int FIB::getLayer(){
+    return layer;
+}

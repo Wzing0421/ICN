@@ -130,6 +130,8 @@ public:
      */
     string getUpperLevelForwardingIP();
 
+    int getLayer();
+
 };
 
 #endif

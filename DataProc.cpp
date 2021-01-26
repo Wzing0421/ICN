@@ -86,11 +86,29 @@ void DataProc::procDataPackage(){
             cout << "[Info]: Get Msg Datapacakge, Pacakge Name: " << dataPackage.contentName << " Data : " << dataPackage.data << endl;
             string upperName = getUpperName(name);
             vector<pair<string, unsigned short>> pendingFaceVec = getMsgPendingFaceInPIT(upperName);
-            if(pendingFaceVec.size() > 0){        
-                //然后向源端口转发
+            
+            // if not the last layer, needs to filter the NON-multicast IP
+            if(!judgeLastLayer()){
+                // only the last layer can transmit multiple cast packages
+                vector<pair<string, unsigned short>> filteredPendingFacaVec;
                 for(int i = 0; i < pendingFaceVec.size(); i++){
-                    udpDataSocket.sendbuf(recvDataBuf, sizeof(recvDataBuf), pendingFaceVec[i].first, pendingFaceVec[i].second);
-                    cout << "[Info] Forwarding data package to: dstip " << pendingFaceVec[i].first << " ContentName: " << name  << " Dstport: " << pendingFaceVec[i].second << endl;
+                    if(!judegMulCastIP(pendingFaceVec[i].first)) filteredPendingFacaVec.push_back(pendingFaceVec[i]);
+                }
+                if(filteredPendingFacaVec.size() > 0){
+                    //然后向源端口转发
+                    for(int i = 0; i < filteredPendingFacaVec.size(); i++){
+                        udpDataSocket.sendbuf(recvDataBuf, sizeof(recvDataBuf), filteredPendingFacaVec[i].first, filteredPendingFacaVec[i].second);
+                        cout << "[Info] Forwarding data package to: dstip " << filteredPendingFacaVec[i].first << " ContentName: " << name  << " Dstport: " << filteredPendingFacaVec[i].second << endl;
+                    }
+                }
+            }
+            else{ // the last layer
+                if(pendingFaceVec.size() > 0){        
+                    //然后向源端口转发
+                    for(int i = 0; i < pendingFaceVec.size(); i++){
+                        udpDataSocket.sendbuf(recvDataBuf, sizeof(recvDataBuf), pendingFaceVec[i].first, pendingFaceVec[i].second);
+                        cout << "[Info] Forwarding data package to: dstip " << pendingFaceVec[i].first << " ContentName: " << name  << " Dstport: " << pendingFaceVec[i].second << endl;
+                    }
                 }
             }
         }
@@ -136,6 +154,15 @@ string DataProc::getUpperName(string name){
     return name.substr(0, position - 1);
 }
 
+bool DataProc::judgeLastLayer(){
+    return (fibInstance->getLayer() == 2);
+}
+
+bool DataProc::judegMulCastIP(string IP){
+    string IP1 = "224.0.0.0";
+    string IP2 = "239.255.255.255";
+    return ((IP >= IP1) && (IP <= IP2));
+}
 
 void DataProc::printInfo(DataPackage datapack){
     cout << "===========DataPackage===========" << endl;
