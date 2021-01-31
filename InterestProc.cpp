@@ -126,8 +126,9 @@ void InterestProc::procInterestPackage(){
                  * 因为源端发送视频流一定需要找到每一个请求端才行
                  */ 
                 //直接插入，有重复的可以去重
-                Subscribe(name, srcip_, sport_);    
-                cout << "[Video]Insert Into PIT: " << name << " IP: " << srcip_ << endl;
+                //需要注意的是，对于订阅的视频消息，需要注册在51005端口，因为对于请求的客户端，ICN会统一发送至51005端口，那么就需要用51005注册订阅请求
+                Subscribe(name, srcip_, sport_ + 4);    
+                cout << "[Video]Insert Into PIT: " << name << " IP: " << srcip_ <<  " Port: " << sport_ + 4 << endl;
                 // 向上级ICN节点注册
                 string upperIP = getUpperLevelIP();
                 udpInterestSocket.sendbuf(recvInterestBuf, lenrecv, upperIP, InterestPort);
@@ -136,7 +137,7 @@ void InterestProc::procInterestPackage(){
                 // type == 2 是短消息流
                 //直接插入，有重复的可以去重,注意短消息和文件订阅都是51001所以都需要+1
                 Subscribe(name, srcip_, sport_ + 1);    
-                cout << "[Msg]Insert Into PIT: " << name << " IP: " << srcip_ << endl;
+                cout << "[Msg]Insert Into PIT: " << name << " IP: " << srcip_ << " Port: " << sport_ + 1 << endl;
                 // 向上级ICN节点注册
                 string upperIP = getUpperLevelIP();
                 udpInterestSocket.sendbuf(recvInterestBuf, lenrecv, upperIP, InterestPort);
@@ -146,8 +147,8 @@ void InterestProc::procInterestPackage(){
             cout << "Before Unsubscribe:" << endl;
             pitInstance->printPIT();
             //取消订阅操作
-            if(type == 1){ // video
-                UnSubscribe(name, srcip_, sport_);
+            if(type == 1){ // video, 51005
+                UnSubscribe(name, srcip_, sport_ + 4);
             }
             else{
                 UnSubscribe(name, srcip_, sport_ + 1);

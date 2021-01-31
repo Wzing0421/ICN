@@ -25,6 +25,7 @@ void VideoProc::InitVideoProc(){
     udpVideoSocket.create(VideoPort);
     // get Singleton instance
     pitInstance = PIT::GetInstance();
+    fibInstance = FIB::GetInstance();
 }
 
 void VideoProc::procVideoPackage(){
@@ -53,11 +54,24 @@ void VideoProc::procVideoPackage(){
         // 请注意这里直接根据流的名字　pku/eecs/video/test.mp3来找转发端口，不需要upperName
         printf("Content Name is: %s, count is: %lld\n", name.c_str(), count);
         vector<pair<string, unsigned short>> pendingFaceVec = getVideoPendingFaceInPIT(name);
-        
-        //有则直接转发, 没有则直接丢弃
-        if(pendingFaceVec.size() > 0){
+        if(!judgeLastLayer()){
+            // only the last layer can transmit multiple cast packages
+            vector<pair<string, unsigned short>> filteredPendingFaceVec;
             for(int i = 0; i < pendingFaceVec.size(); i++){
-                udpVideoSocket.sendbuf(recvDataBuf, lenrecv, pendingFaceVec[i].first, VideoPort);
+                if(!judegMulCastIP(pendingFaceVec[i].first)) filteredPendingFaceVec.push_back(pendingFaceVec[i]);
+            }
+            if(filteredPendingFaceVec.size() > 0){
+                for(int i = 0; i < filteredPendingFaceVec.size(); i++){
+                    udpVideoSocket.sendbuf(recvDataBuf, lenrecv, filteredPendingFaceVec[i].first, filteredPendingFaceVec[i].second);
+                }
+            }
+        }
+        else{
+            //有则直接转发, 没有则直接丢弃
+            if(pendingFaceVec.size() > 0){
+                for(int i = 0; i < pendingFaceVec.size(); i++){
+                    udpVideoSocket.sendbuf(recvDataBuf, lenrecv, pendingFaceVec[i].first, pendingFaceVec[i].second);
+                }
             }
         }
         delete [] contentName;
@@ -67,4 +81,14 @@ void VideoProc::procVideoPackage(){
 
 vector<pair<string, unsigned short>> VideoProc::getVideoPendingFaceInPIT(string name){
     return pitInstance->getVideoPendingFace(name);
+}
+
+bool VideoProc::judgeLastLayer(){
+    return (fibInstance->getLayer() == 2);
+}
+
+bool VideoProc::judegMulCastIP(string IP){
+    string IP1 = "224.0.0.0";
+    string IP2 = "239.255.255.255";
+    return ((IP >= IP1) && (IP <= IP2));
 }

@@ -34,6 +34,9 @@ private:
     // PIT 表
     PIT* pitInstance;
 
+    // FIB 表
+    FIB* fibInstance;
+
     //接收Interest包的socket
     UDPSocket udpVideoSocket;
 
@@ -43,6 +46,14 @@ private:
     void InitVideoProc();
 
     vector<pair<string, unsigned short>> getVideoPendingFaceInPIT(string name);
+
+    /**
+     * judge if the icn is the last layer;
+     * only last layer can transmit multicast pacakges
+     */
+    bool judgeLastLayer();
+
+    bool judegMulCastIP(string IP);
 
 public:
     VideoProc();
