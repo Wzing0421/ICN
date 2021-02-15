@@ -126,6 +126,13 @@ string FIB::getUpperLevelForwardingIP(){
     return FIBstructure[layer - 1][0].second;   
 }
 
+string FIB::getLowerLevelForwardingIP(){
+    string ret = "";
+    if(layer == 2) return ret;
+    else return FIBstructure[layer + 1][0].second;
+    
+}
+
 int FIB::getLayer(){
     return layer;
 }

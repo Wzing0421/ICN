@@ -24,8 +24,9 @@ void VideoProc::InitVideoProc(){
     // bind port by IntestSocket
     udpVideoSocket.create(VideoPort);
     // get Singleton instance
-    pitInstance = PIT::GetInstance();
     fibInstance = FIB::GetInstance();
+    pitInstance = PIT::GetInstance();
+    
 }
 
 void VideoProc::procVideoPackage(){

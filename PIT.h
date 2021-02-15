@@ -12,6 +12,7 @@
 
 #include "arpa/inet.h"
 #include "UDPSocket.h"
+#include "FIB.h"
 
 using namespace std;
 
@@ -43,6 +44,9 @@ private:
     //单例模式
     PIT();
     static PIT* pitInstance;
+
+    // FIB 表
+    FIB* fibInstance;
 
     string getUpperName(string name);
 
@@ -100,6 +104,8 @@ public:
      * 这个接口目前还没用到，比如说有转发信息表有超时时间，超时的时候可以调用这个接口 
      */
     void deleteContentName(string name);
+
+    bool judegMulCastIP(string IP);
 
     void printPIT();
 };

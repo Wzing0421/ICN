@@ -2,6 +2,7 @@
 //unordered_map<string, unordered_set<pair<string, unsigned short>>> ContentName2IPPort;
 
 PIT::PIT(){
+    fibInstance = FIB::GetInstance();
     // no lock! read from etcd to get multiple cast information
     getSettingsFromEtcd();    
     printPIT();
@@ -59,6 +60,17 @@ void PIT::getSettingsFromEtcd(){
                 SplitString(ret[i], retitem, ":");
                 // retitem[0] = "pku/eecs/msg/hangzhen/areo1" retitem[1] = "225.0.0.1" retitem[2] = 51010
                 unsigned short port = (unsigned short)atoi(retitem[2].c_str());
+                
+                // 如果小于2层那么就把组播地址和端口换成下一层的单播ip
+                if(fibInstance->getLayer() < 2 &&  judegMulCastIP(retitem[1])){
+                    retitem[1] = fibInstance->getLowerLevelForwardingIP();
+                    if(retitem[0].find("video") != retitem[0].npos){
+                        port = 51005;
+                    }
+                    else if(retitem[0].find("msg") != retitem[0].npos){
+                        port = 51002;
+                    }
+                }
                 ContentName2IPPort[retitem[0]].insert(make_pair(retitem[1], port));
             }
         }
@@ -225,6 +237,13 @@ string PIT::getUpperName(string name){
     }
     return name.substr(0, position - 1);
 }
+
+bool PIT::judegMulCastIP(string IP){
+    string IP1 = "224.0.0.0";
+    string IP2 = "239.255.255.255";
+    return ((IP >= IP1) && (IP <= IP2));
+}
+
 void PIT::printPIT(){
     cout << "========================================="<<endl;
     for(auto iter = ContentName2IPPort.begin(); iter != ContentName2IPPort.end(); iter++){

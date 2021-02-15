@@ -26,8 +26,9 @@ void DataProc::InitDataProc(){
     udpDataSocket.create(DataPort);
     // get Sigleton instance
     cslruInstance = CSLRU::GetInstance(100);
-    pitInstance = PIT::GetInstance();
     fibInstance = FIB::GetInstance();
+    pitInstance = PIT::GetInstance();
+    
 }
 
 void DataProc::procDataPackage(){

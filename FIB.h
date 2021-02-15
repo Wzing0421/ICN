@@ -130,6 +130,13 @@ public:
      */
     string getUpperLevelForwardingIP();
 
+    /**
+     * 
+        对于组播的视频流或者短消息流,　高层的节点不能向组播转发（避免重复），而应该向其下级节点转发
+        所以fib表应该提供寻找下级某节点的功能
+    */
+    string getLowerLevelForwardingIP();
+
     int getLayer();
 
 };
