@@ -61,8 +61,14 @@ void InterestProc::procInterestPackage(){
         string name = interestPackage.contentName;
         int subscribe = interestPackage.Subscribe;
         int type = interestPackage.type;
-
+        
+        //先获得客户端编号
+        string client_num = allocateClientName(srcip_);
+        
         if(subscribe == 1){
+            //先打印订阅信息
+            
+            cout << "Client " << client_num << " submits subscription request, request content name is : " << name << endl;
             //订阅操作
             //type == 0 是文件 
             if(type == 0){
@@ -145,6 +151,9 @@ void InterestProc::procInterestPackage(){
             }
         }
         else{
+
+            cout << "Client " << client_num << " submits Unsubscription request, request content name is : " << name << endl;
+            cout << endl;
             cout << "Before Unsubscribe:" << endl;
             pitInstance->printPIT();
             //取消订阅操作
@@ -259,6 +268,29 @@ string InterestProc::getThisLevelIPIfContentExist(vector<string> &forwardingFace
         }
     }
     return ret;
+}
+
+string InterestProc::allocateClientName(string IP){
+    if(clientName.find(IP) != clientName.end()){
+        return to_string(clientName[IP]);
+    }
+    else{
+        for(int i = 1; i < clientName.size(); i++){
+            bool find = false;
+            for(auto iter = clientName.begin(); iter != clientName.end(); iter++){
+                if(iter->second == i){
+                    find = true;
+                    break;
+                }
+            }
+            if(!find){
+                clientName[IP] = i;
+                return to_string(i);
+            }
+        }
+        clientName[IP] = clientName.size() + 1;
+        return to_string(clientName[IP]);
+    }
 }
 
 string InterestProc::getUpperLevelIP(){

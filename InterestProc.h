@@ -55,6 +55,9 @@ private:
     //向本级别ICN节点查询的源端口
     unsigned short InquireBindPort;
 
+    //记录客户端IP和客户端名称(比如 client1)的映射关系
+    unordered_map<string, int> clientName;
+
     /**
      * 设置本级查询超时时间
      */
@@ -97,6 +100,11 @@ private:
      * 打印调试信息
     */
     void printInfo(InterestPackage interestpack);
+
+    /**
+     * 根据客户端源IP名称，分配显示主机名称clientName
+    */
+    string allocateClientName(string IP);
 
 public:
 
