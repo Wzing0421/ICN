@@ -70,6 +70,11 @@ void PIT::getSettingsFromEtcd(){
                     else if(retitem[0].find("msg") != retitem[0].npos){
                         port = 51002;
                     }
+                    // file also send to multicast
+                    else if(retitem[0].find("file") != retitem[0].npos){
+                        cout << "----" << retitem[0] << "----" << endl;
+                        port = 51002;
+                    }
                 }
                 ContentName2IPPort[retitem[0]].insert(make_pair(retitem[1], port));
             }
